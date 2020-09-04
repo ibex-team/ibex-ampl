@@ -38,7 +38,7 @@ static System* sysex1() {
 }
 
 static System* ampl_sysex1() {
-	AmplInterface interface(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/ex1.nl");
+	AmplInterface interface(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/ex1.nl");
 	return new System(interface);
 }
 
@@ -60,7 +60,7 @@ static System* sysex2() {
 
 
 static System* ampl_sysex2() {
-	AmplInterface interface(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/ex2.nl");
+	AmplInterface interface(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/ex2.nl");
 	return new System(interface);
 }
 
@@ -82,7 +82,7 @@ static System* sysex3() {
 
 
 static System* ampl_sysex3() {
-	AmplInterface interface(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/ex3.nl");
+	AmplInterface interface(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/ex3.nl");
 	return new System(interface);
 }
 
@@ -199,8 +199,8 @@ void TestAmpl::normalize() {
 
 void TestAmpl::merge() {
 
-	AmplInterface i1(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/bearing.nl");
-	AmplInterface i2(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/I5.nl");
+	AmplInterface i1(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/bearing.nl");
+	AmplInterface i2(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/I5.nl");
 	System sys1(i1);
 	System sys2(i2);
 	System sys3(sys1,sys2);
@@ -212,7 +212,7 @@ void TestAmpl::merge() {
 }
 
 void TestAmpl::variable1() {
-	AmplInterface inter(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/ex4.nl" );
+	AmplInterface inter(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/ex4.nl" );
 	System sys(inter);
 	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(x(1)+x(2))"));
 	CPPUNIT_ASSERT(sys.ctrs.size()==3);
@@ -228,7 +228,7 @@ void TestAmpl::variable1() {
 
 
 void TestAmpl::variable2() {
-	AmplInterface inter(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/ex5.nl" );
+	AmplInterface inter(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/ex5.nl" );
 	System sys(inter);
 	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(((x(1)+x(2))*(x(1)+x(2)))+x(2))"));
 	CPPUNIT_ASSERT(sys.ctrs.size()==3);
@@ -243,7 +243,7 @@ void TestAmpl::variable2() {
 }
 
 void TestAmpl::variable3() {
-	AmplInterface inter(SRCDIR_TESTS "/../plugins/ampl/tests/ex_ampl/ex6.nl" );
+	AmplInterface inter(SRCDIR_TESTS "/../plugins/ibex-ampl/tests/ex_ampl/ex6.nl" );
 	System sys(inter);
 	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"((((x(1)+x(2))*(((((x(1)+x(2))*(x(1)+x(2)))+((x(1)+x(2))*(x(1)+x(2))))-x(1))+x(2)))+((((((x(1)+x(2))*(x(1)+x(2)))+((x(1)+x(2))*(x(1)+x(2))))-x(1))+x(2))*(((x(1)+x(2))*(x(1)+x(2)))+x(2))))-x(1))"));
 	CPPUNIT_ASSERT(sys.ctrs.size()==3);
