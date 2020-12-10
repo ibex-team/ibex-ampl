@@ -11,6 +11,9 @@ from waflib import Logs
 def options (opt):
     opt.add_option ("--with-ampl", action="store_true", dest="WITH_AMPL",
             help = "Use AMPL")
+            
+    opt.plugins["ampl"] = "WITH_AMPL"
+    
 ######################
 ##### configure ######
 ######################
