@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: ibex-myplugin
+Description: @IBEX_MYPLUGIN_DESCRIPTION@
+Url: @IBEX_MYPLUGIN_URL@
+Version: @IBEX_MYPLUGIN_VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir} -libex-myplugin
+Requires: ibex >= @IBEX_MIN_VERSION_REQ@
