@@ -27,6 +27,7 @@ endif ()
 ################################################################################
 set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake.utils")
 list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
+
 ################################################################################
 # Run common init function and install the module so plugins can use it
 ################################################################################

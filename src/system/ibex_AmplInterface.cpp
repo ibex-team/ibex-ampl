@@ -31,7 +31,7 @@
 #define CEXPS1 ((const ASL_fg *) asl) -> I.cexps1_
 #define CEXPS ((const ASL_fg *) asl) -> I.cexps_
 
-#include "amplsolvers/r_opn.hd" /* for N_OPS */
+#include "asl/r_opn.hd" /* for N_OPS */
 
 
 // The different option of IBEXOPT in Ampl

@@ -11,7 +11,7 @@ add_library (ibex-ampl ${SRC})
 target_include_directories (ibex-ampl PUBLIC
                             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/system>"
                 			"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ibex-ampl>")
-target_link_libraries (ibex-ampl PUBLIC Ibex::ibex)
+target_link_libraries (ibex-ampl PUBLIC Ibex::ibex asl::asl)
 
 # installation of libibex-ampl files
 ibex_list_filter_header (HDR ${SRC}) # Ibex should have installed this function
