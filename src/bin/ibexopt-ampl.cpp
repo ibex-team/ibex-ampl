@@ -13,6 +13,7 @@
 
 #include "ibex.h"
 #include "parse_args.h"
+#include "ibex_AmplInterface.h"
 
 #include <sstream>
 

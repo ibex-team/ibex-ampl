@@ -40,8 +40,6 @@ list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
 ################################################################################
 add_subdirectory (3rd)
 
-
-
 ################################################################################
 # Generate pkg-config file and install it (can be removed if no library is
 # installed)

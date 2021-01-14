@@ -23,3 +23,5 @@ install (FILES ${HDR} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ibex-ampl)
 # More examples in the bin subdirectory
 ################################################################################
 add_subdirectory (bin)
+
+
