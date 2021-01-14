@@ -15,10 +15,10 @@
 
 #include "ibex/ibex_DefaultOptimizerConfig.h"
 
-#include "amplsolvers/asl.h"
-#include "amplsolvers/nlp.h"
-#include "amplsolvers/getstub.h"
-#include "amplsolvers/opcode.hd"
+#include "asl/asl.h"
+#include "asl/nlp.h"
+#include "asl/getstub.h"
+#include "asl/opcode.hd"
 #include <stdint.h>
 //#include <string.h>
 #include <math.h>

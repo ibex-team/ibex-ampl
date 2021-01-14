@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.5.1)
 project (IBEX_AMPL VERSION 1.0 LANGUAGES CXX)
 set (IBEX_AMPL_DESCRIPTION "SPlugin to interface ibex and AMPL")
 set (IBEX_AMPL_URL "https://www.ibex-lib.org")
-set (IBEX_MIN_VERSION_REQ 2.8.9.1)
+set (IBEX_MIN_VERSION_REQ 2.8)
 
 find_package (IBEX ${IBEX_MIN_VERSION_REQ} REQUIRED)
 message (STATUS "Found Ibex version ${IBEX_VERSION}")
@@ -20,6 +20,92 @@ if (IBEX_LP_LIB_NAME) # Was Ibex compiled with a linear programming library ?
 else ()
   message (STATUS "Ibex was compiled without any Linear Programming library")
 endif ()
+################################################################################
+
+################################################################################
+# Add cmake.utils to the list of CMAKE_MODULE_PATH
+################################################################################
+set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake.utils")
+list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
+################################################################################
+# Run common init function and install the module so plugins can use it
+################################################################################
+#message (STATUS "Configuring Ibex ${IBEX_VERSION}")
+#include (ibexAmpl-config-utils)
+#ibex_init_common ()
+
+################################################################################
+# Options
+################################################################################
+set (ASL_DIR "" CACHE PATH "Path to the ASL lib and include directories")
+
+
+################################################################################
+# May be needed to install missing dependencies
+################################################################################
+#include (ExternalProject)
+include (IbexAmplUtils)
+
+# Looking for asl/asl.h, result is written in ASL_INCDIR
+find_header_custom (ASL "asl/asl.h" PATHS "${ASL_DIR}")
+# Looking for asl library, result is written in ASL_LIB
+find_library_custom (ASL "asl" PATHS "${ASL_DIR}")
+
+
+
+if (ASL_INCDIR AND ASL_LIB)
+  create_target_import_and_export (asl ${ASL_LIB} ASL_EXPORTFILE
+                                        #${filib_compile_option}
+                                        NAMESPACE Ibex::
+                                        TARGET_NAME asl
+                                        INCLUDE_DIRECTORIES ${ASL_INCDIR})
+else ()
+  message (STATUS "Will install and use library ASL from 3rd/ subdirectory")
+
+  set (asl_basename "asl")
+  set (asl_archive_name "${asl_basename}.zip")
+  set (asl_archive "${CMAKE_CURRENT_SOURCE_DIR}/3rd/${asl_archive_name}")
+  set (wdir "${CMAKE_CURRENT_BINARY_DIR}/${asl_basename}")
+  set (logdir "${CMAKE_CURRENT_BINARY_DIR}/log")
+  set (_prefix "ASL: ")
+
+  file (MAKE_DIRECTORY "${logdir}")
+
+  # extract
+  execute_process_check (COMMAND ${CMAKE_COMMAND} -E tar xzf ${asl_archive}
+                         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                         MSG "extracting ${asl_archive_name}"
+                         LOGBASENAME "${logdir}/extract"
+                         STATUS_PREFIX "${_prefix}")
+
+  # TODO apply patch
+  #set (FILIB_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/3rd/filibsrc-3.0.2.2.all.all.patch")
+
+  # copy files
+  foreach (file "CMakeLists.txt" "config.h.in" "rounding_control/rounding_control_config.hpp.in")
+    set (infile ${CMAKE_CURRENT_SOURCE_DIR}/3rd/${filib_basename}/${file})
+    set (outfile ${wdir}/${file})
+    string (REPLACE "/" "_" logbase "${file}")
+    execute_process_check (COMMAND ${CMAKE_COMMAND} -E copy ${infile} ${outfile}
+                           MSG "copying ${file}"
+                           LOGBASENAME "${logdir}/copy-${logbase}"
+                           STATUS_PREFIX "${_prefix}")
+  endforeach ()
+
+  # configure
+  message (STATUS "${_prefix}configure")
+  # Original values will be restored at the end of this file
+  set (CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR_3RD})
+  set (CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR_3RD})
+  add_subdirectory (${wdir} ${wdir}-build)
+  message (STATUS "${_prefix}configure - done")
+
+  add_library (Ibex::asl ALIAS asl)
+endif ()
+
+list (APPEND EXPORTFILES "${ASL_EXPORTFILE}")
+set (EXPORTFILES "${EXPORTFILES}" PARENT_SCOPE)
+
 
 ################################################################################
 # Generate pkg-config file and install it (can be removed if no library is
