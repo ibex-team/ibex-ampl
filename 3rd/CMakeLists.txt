@@ -19,15 +19,15 @@ else ()
   ###
   set (ASL_VERSION "20201107")
   set (ASL_basename "asl")
-  set (ASL_archive_name "asl.zip")
-  set (ASL_archive "${CMAKE_CURRENT_SOURCE_DIR}/3rd/${asl_archive_name}")
-  set (wdir "${CMAKE_CURRENT_BINARY_DIR}/${asl_basename}")
+  set (ASL_archive_name "asl.tar.gz")
+  set (ASL_archive "${CMAKE_CURRENT_SOURCE_DIR}/${ASL_archive_name}")
+  set (wdir "${CMAKE_CURRENT_BINARY_DIR}/${ASL_basename}")
   set (logdir "${CMAKE_CURRENT_BINARY_DIR}/log")
 
   file (MAKE_DIRECTORY "${logdir}")
 
   ### Extract
-  execute_process_check (COMMAND ${CMAKE_COMMAND} -E unzip ${ASL_archive}
+  execute_process_check (COMMAND ${CMAKE_COMMAND} -E tar xzf ${ASL_archive}
                          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                          MSG "extracting ${ASL_archive_name}"
                          LOGBASENAME "${logdir}/extract"
@@ -43,7 +43,8 @@ else ()
   message (STATUS "${ASL_NAME}: configure - done")
 
   ###
-  set (ASL_TARGET "asl" PARENT_SCOPE)
+  set (ASL_TARGET "asl::asl" PARENT_SCOPE)
   set (ASL_VERSION ${ASL_VERSION} PARENT_SCOPE)
 endif ()
+
 

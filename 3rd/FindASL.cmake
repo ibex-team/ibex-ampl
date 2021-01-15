@@ -6,6 +6,8 @@
 #     ASL_FOUND
 #     ASL_INCLUDE_DIRS
 #     ASL_LIBRARIES
+#     ASL_VERSION
+#     
 #
 # and the following imported target (if it does not already exist):
 #
@@ -32,9 +34,14 @@ find_path (ASL_INC_DIR NAMES asl/asl.h
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (asl DEFAULT_MSG ASL_LIBRARY ASL_INC_DIR)
 
+# TODO mais je comprend pas la syntaxe
+#find_package_handle_standard_args (dl DEFAULT_MSG dl)
+
 if (ASL_FOUND)
-	set (ASL_LIBRARIES ${ASL_LIBRARY})
-	set (ASL_INCLUDE_DIRS "${ASL_INC_DIR}")
+  set (ASL_LIBRARIES ${ASL_LIBRARY})
+  set (ASL_INCLUDE_DIRS "${ASL_INC_DIR}")
+  #Todo
+  set (ASL_VERSION "????")
   mark_as_advanced (ASL_DIR)
   if (NOT TARGET asl::asl)
     # For now we make the target global, because this file is included from a
