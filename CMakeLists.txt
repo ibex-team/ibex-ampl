@@ -8,7 +8,7 @@ set (IBEX_MIN_VERSION_REQ 2.8.9.1)
 find_package (IBEX ${IBEX_MIN_VERSION_REQ} REQUIRED)
 message (STATUS "Found Ibex version ${IBEX_VERSION}")
 ibex_init_common () # Ibex should have installed this function
-set (CMAKE_INSTALL_CONFIGCMAKE "share/ibex-ampl/cmake")
+set (CMAKE_INSTALL_CONFIGCMAKE "share/ibex_ampl/cmake")
 
 # Interval and linear programming names and versions are available
 message (STATUS "Ibex was compiled with interval library "
@@ -20,7 +20,6 @@ if (IBEX_LP_LIB_NAME) # Was Ibex compiled with a linear programming library ?
 else ()
   message (STATUS "Ibex was compiled without any Linear Programming library")
 endif ()
-################################################################################
 
 ################################################################################
 # Add cmake.utils to the list of CMAKE_MODULE_PATH
@@ -29,16 +28,38 @@ set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake.utils")
 list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
 
 ################################################################################
-# Run common init function and install the module so plugins can use it
+# Find ampl-asl
 ################################################################################
-#message (STATUS "Configuring Ibex ${IBEX_VERSION}")
-#include (ibexAmpl-config-utils)
-#ibex_init_common ()
+find_package (ampl-asl QUIET)
+if (NOT ampl-asl_FOUND)
+  message (STATUS "Will install and use library ASL from 3rd/ subdirectory")
+  include (ibex-install-3rd)
 
-################################################################################
-# Configure the libraries for ASL and AMPL
-################################################################################
-add_subdirectory (3rd)
+  #set (ASL_VERSION "1.17.6")
+  set (ASL_NAME "ASL")
+  set (asl_basename "asl")
+  set (asl_archive_name "${asl_basename}.zip")
+  set (asl_archive "${CMAKE_CURRENT_SOURCE_DIR}/3rd/${asl_archive_name}")
+  set (wdir "${CMAKE_CURRENT_BINARY_DIR}/${asl_basename}")
+  set (logdir "${CMAKE_CURRENT_BINARY_DIR}/log")
+
+  file (MAKE_DIRECTORY "${logdir}")
+
+  ### Extract
+  execute_process_check (COMMAND ${CMAKE_COMMAND} -E tar xzf ${asl_archive}
+                         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                         MSG "extracting ${asl_archive_name}"
+                         LOGBASENAME "${logdir}/extract"
+                         STATUS_PREFIX "${ASL_NAME}: ")
+
+  ### Configure
+  message (STATUS "${ASL_NAME}: configure")
+  # Original values will be restored at the end of this file
+  set (CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR_3RD})
+  set (CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR_3RD})
+  add_subdirectory (${wdir} ${wdir}-build)
+  message (STATUS "${ASL_NAME}: configure - done")
+endif ()
 
 ################################################################################
 # Generate pkg-config file and install it (can be removed if no library is
