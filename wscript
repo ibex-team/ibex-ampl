@@ -57,10 +57,10 @@ def configure (conf):
     ampl_ret = conf.configure_3rd_party_with_autotools (ampl_archive, False, False, "", ampl_cflags)
     _, ampl_include, ampl_lib = ampl_ret
     conf.env.INSTALL_3RD = True
-    conf.env.append_unique ("LIB_3RD_LIST", "amplsolvers" )
+    conf.env.append_unique ("LIB_3RD_LIST", "asl" )
 
     # Looking for ampl header and library (called amplsolvers)
-    for h in [ "amplsolvers/asl.h", "amplsolvers/nlp.h", "amplsolvers/getstub.h", "amplsolvers/opcode.hd", "amplsolvers/r_opn.hd" ]:
+    for h in [ "asl/asl.h", "asl/nlp.h", "asl/getstub.h", "asl/opcode.hd", "asl/r_opn.hd" ]:
         conf.check_cxx (header_name = h, includes = ampl_include,
                         use = [ "IBEX", "AMPL" ], uselib_store= "AMPL")
 
