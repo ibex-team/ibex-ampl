@@ -27,11 +27,14 @@ endif ()
 set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake.utils")
 list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
 
+list(APPEND CMAKE_PREFIX_PATH "${ASL_DIR}")
 ################################################################################
 # Find ampl-asl
 ################################################################################
 find_package (ampl-asl QUIET)
-if (NOT ampl-asl_FOUND)
+if (ampl-asl_FOUND)
+	message (STATUS "Found Ampl Solver Librairy")
+else()
   message (STATUS "Will install and use library ASL from 3rd/ subdirectory")
   include (ibex-install-3rd)
 

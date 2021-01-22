@@ -19,6 +19,7 @@ if (CPPUNIT_FOUND)
     # /!\ The test and the target building the executable have the same name
     add_executable (${test} ${test}.cpp ${test}.h)
     target_link_libraries (${test} test_common CppUnit::CppUnit)
+    target_compile_definitions (${test} PRIVATE ${srcdir_test_flag})
     add_dependencies (check ${test})
     add_test (${test} ${test})
   endforeach ()
