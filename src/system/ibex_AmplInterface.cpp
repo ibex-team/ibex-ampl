@@ -11,6 +11,7 @@
 #include "ibex_AmplInterface.h"
 #include "ibex/ibex_Exception.h"
 #include "ibex/ibex_ExtendedSystem.h"
+#include <sstream>
 
 
 #include "ibex/ibex_DefaultOptimizerConfig.h"
@@ -19,9 +20,10 @@
 #include "asl/nlp.h"
 #include "asl/getstub.h"
 #include "asl/opcode.hd"
-#include <stdint.h>
+#include "asl/r_opn.hd" /* for N_OPS */
 //#include <string.h>
-#include <math.h>
+//#include <math.h>
+#include <stdint.h>
 
 
 #define OBJ_DE    ((const ASL_fg *) asl) -> I.obj_de_
@@ -31,7 +33,6 @@
 #define CEXPS1 ((const ASL_fg *) asl) -> I.cexps1_
 #define CEXPS ((const ASL_fg *) asl) -> I.cexps_
 
-#include "asl/r_opn.hd" /* for N_OPS */
 
 
 // The different option of IBEXOPT in Ampl
@@ -78,87 +79,6 @@ Option_Info Oinfo = {
 		const_cast<char*>(xxxvers.c_str())     /*  for -v and Ver_key_ASL() */
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////
-/* $Id: invmap.cpp 577 2011-05-21 20:38:48Z pbelotti $
- *
- * Name:    invmap.cpp
- * Author:  Pietro Belotti
- * Purpose: create a bijection between ASL's efunc and integer to
- *          inversely map e->op fields into constant operators
- *
- * (C) Carnegie-Mellon University, 2006-11.
- * This file is licensed under the Eclipse Public License (EPL)
- */
-
-/* couples an ASL function pointer with the relative operator constant */
-
-typedef struct {
-	efunc *fp;
-	int    op;
-} AslCouPair;
-
-
-/* compare two AslCoupair's, used in qsort and bsearch below */
-
-/* AW: 2007-06-11: changed b/c of problems with MSVC++ */
-/* inline int pair_compare (const void *p1, const void *p2) { */
-static int pair_compare (const void *p1, const void *p2) {
-
-	/* FIX! weak cast for 64 bit machines */
-
-	register size_t f1 = Intcast (((AslCouPair *) p1) -> fp);
-	register size_t f2 = Intcast (((AslCouPair *) p2) -> fp);
-
-	if      (f1 < f2) return -1;
-	else if (f1 > f2) return  1;
-	else return 0;
-}
-
-
-/* array of pairs (efunc2*, int) that relates all operators */
-
-AslCouPair opmap [N_OPS];
-
-
-/* binary search to get operator number from its efunc2* (the type of e->op) */
-
-size_t getOperator (efunc *f) {
-
-	static char first_call = 1;
-	AslCouPair key, *res;
-
-	/* FIX cast for 64 bit machines */
-
-	if ((Intcast f <  N_OPS) &&	(Intcast f > -N_OPS))
-		return Intcast f;
-
-	key.fp = f;
-
-	if (first_call) { /* opmap is still empty, fill it using values from r_ops [] */
-
-		register int i=0;
-		register AslCouPair *ops = opmap;
-
-		/* fill opmap vector with inverse correspondence pairs efunc -> int */
-		while (i<N_OPS) {
-			ops -> fp = r_ops [ops -> op = i++];
-			ops++;
-		}
-
-		/* sort opmap for later use with bsearch */
-		qsort (opmap, N_OPS, sizeof (AslCouPair), pair_compare);
-		first_call = 0;
-	}
-
-	/* find int operator through binary search */
-	res = (AslCouPair *) bsearch (&key, opmap, N_OPS, sizeof (AslCouPair), pair_compare);
-
-	if (!res)
-		return -1;
-
-	return res -> op;
-}
-
 
 
 // (C++) code starts here ///////////////////////////////////////////////////////////////////////////
@@ -187,6 +107,12 @@ AmplOption::AmplOption():
 
 AmplInterface::AmplInterface(std::string nlfile) : asl(NULL), _nlfile(nlfile), _x(NULL), option(){
 
+	size_t i=0;
+	while (i<N_OPS) {
+		opmap[ Intcast (r_ops[i]) ] = i;
+		i++;
+	}
+
 	if (!readASLfg()) {
 		ibex_error("Fail to read the ampl file.\n");
 	}
@@ -205,7 +131,7 @@ AmplInterface::~AmplInterface() {
 	}
 
 	var_data.clear();
-
+	opmap.clear();
 	if (asl) {
 		ASL_free(&asl);
 	}
@@ -392,11 +318,11 @@ bool AmplInterface::readnl() {
 		//if (n_obj>1) {ibex_error("Error AmplInterface: too much objective function in the ampl model."); return false;}
 
 		//for (int i = 0; i < n_obj; i++) {
-		if (ibex_objno) {
-			int i = ibex_objno;
+		if (n_obj>0 && ibex_objno>0) {
+			int i = ibex_objno -1 ;
 			///////////////////////////////////////////////////
 			//  the nonlinear part
-			const ExprNode *body = &(nl2expr (OBJ_DE [i] . e));
+			const ExprNode *body = &(nl2expr ((OBJ_DE [i]).e));
 
 			////////////////////////////////////////////////
 			// The linear part
@@ -595,14 +521,14 @@ bool AmplInterface::readnl() {
 // http://www.gerad.ca/~orban/drampl/dag.html
 const ExprNode& AmplInterface::nl2expr(expr *e) {
 
-	switch (getOperator (e -> op)) {
+	switch (opmap[Intcast (e -> op)]) {
 
 	case OPNUM:    return  (ExprConstant::new_scalar(((expr_n *)e)->v));
 	case OPPLUS:   {
-		if (getOperator(e->R.e->op)==OPUMINUS) {
+		if (opmap[Intcast (e->R.e->op)]==OPUMINUS) {
 			return  (( nl2expr(e -> L.e)) - nl2expr((e->R.e)->L.e) );
 		} else {
-			if (getOperator(e->L.e->op)==OPUMINUS) {
+			if (opmap[Intcast (e->L.e->op)]==OPUMINUS) {
 				return  (nl2expr(e->R.e) - nl2expr((e->L.e)->L.e) );
 			} else {
 				return  (nl2expr(e->R.e) + nl2expr(e->L.e) );
@@ -610,7 +536,7 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 		}
 	}
 	case OPMINUS:  {
-		if (getOperator(e->R.e->op)==OPUMINUS)  {
+		if (opmap[Intcast (e->R.e->op)]==OPUMINUS)  {
 			return (( nl2expr(e->L.e)) + nl2expr((e->R.e)->L.e) );
 		} else {
 			return  (( nl2expr(e->L.e)) - nl2expr(e->R.e));
@@ -652,7 +578,7 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 		const ExprNode* ee = &(nl2expr(*ep));
 		ep++;
 		while (ep < e->R.ep) {
-			if (getOperator((*ep)->op)==OPUMINUS) {
+			if (opmap[Intcast ((*ep)->op)]==OPUMINUS) {
 				ee = &(*ee - nl2expr((*ep)->L.e) );
 			} else {
 				ee = &(*ee + nl2expr(*ep) );
@@ -663,7 +589,7 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 	}
 	case ABS:      return abs( nl2expr(e -> L.e));
 	case OPUMINUS: {
-		if (getOperator(e->L.e->op)==OPUMINUS)  {
+		if (opmap[Intcast (e->L.e->op)]==OPUMINUS)  {
 			return  (nl2expr((e -> L.e)->L.e));
 		} else {
 			return  (operator-(nl2expr(e -> L.e)));
@@ -804,7 +730,8 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 	}
 
 	default: {
-		ibex_error( "Error AmplInterface: unknown operator or not implemented \n");
+		std::cout << opmap[Intcast (e -> op)] << std::endl;
+		ibex_error( "Error AmplInterface: unknown operator or not implemented \n " );
 		throw -2;
 	}
 	}

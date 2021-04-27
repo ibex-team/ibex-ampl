@@ -13,7 +13,7 @@
 #define __TEST_AMPL_H__
 
 #ifndef SRCDIR_TESTS
-  #define SRCDIR_TESTS "."
+  #define SRCDIR_TESTS "/home/jninin/Documents/WORK/DEV/IBEX/GIT_AMPL/ibex-ampl/tests"
 #endif
 
 #include <cppunit/TestFixture.h>
@@ -36,6 +36,7 @@ public:
 		CPPUNIT_TEST(variable1);
 		CPPUNIT_TEST(variable2);
 		CPPUNIT_TEST(variable3);
+
 	CPPUNIT_TEST_SUITE_END();
 
 	void factory01();

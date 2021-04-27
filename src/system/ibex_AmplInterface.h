@@ -3,8 +3,8 @@
 // File        : ibex_AmplInterface.h Adapted from CouenneAmplInterface
 // Author      : Jordan Ninin
 // License     : See the LICENSE file
-// Created     : Nov 5, 2013
-// Last Update : Nov 5, 2013
+// Created     : Nov 5, 2020
+// Last Update : Nov 5, 2020
 //============================================================================
 
 
@@ -34,6 +34,7 @@
 #endif
 
 #include "ibex/ibex_Optimizer.h"
+
 
 struct ASL;
 struct expr;
@@ -85,17 +86,20 @@ private:
 #include <ciso646> // just to initialize _LIBCPP_VERSION
 #ifdef _LIBCPP_VERSION
 	std::unordered_map<int, const ExprNode*> var_data;
+	std::unordered_map<size_t, size_t> opmap;
 #else
 	std::tr1::unordered_map<int, const ExprNode*> var_data;
+	std::tr1::unordered_map<size_t, size_t> opmap;
 #endif
 #else
 #if (_MSC_VER >= 1600)
-	std::unordered_map<int, const ExprNode*> var_data;
+	std::unordered_map<int, const ExprNode*> var_data
+	std::unordered_map<size_t, size_t> opmap;
 #else
 	std::tr1::unordered_map<int, const ExprNode*> var_data;
+	std::tr1::unordered_map<size_t, size_t> opmap;
 #endif // (_MSC_VER >= 1600)
 #endif
-
 
 	bool readnl();
 	bool readoption();
