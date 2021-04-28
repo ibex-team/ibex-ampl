@@ -60,7 +60,7 @@ public:
 	bool inHC4;
 	/** Initial value of the upper bound */
 	double initial_loup;
-//	bool kkt;
+	bool kkt;
 	int random_seed;
 	/** Goal relative precision: 1e-3. */
 	double rel_eps_f;

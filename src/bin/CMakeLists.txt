@@ -5,7 +5,7 @@ list (APPEND SRC2 ${CMAKE_CURRENT_SOURCE_DIR}/ibexopt-ampl.cpp
 
 # Create the target for bin2
 add_executable (ibexopt-ampl ${SRC2})
-target_link_libraries (ibexopt-ampl PUBLIC Ibex::ibex ibex-ampl dl)
+target_link_libraries (ibexopt-ampl PUBLIC Ibex::ibex ibex-ampl)
 set_target_properties (ibexopt-ampl PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                                       "${CMAKE_BINARY_DIR}/bin")
 

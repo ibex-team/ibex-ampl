@@ -26,6 +26,10 @@
 #include <stdint.h>
 
 
+#ifndef Intcast
+#define Intcast (size_t)
+#endif
+
 #define OBJ_DE    ((const ASL_fg *) asl) -> I.obj_de_
 #define VAR_E     ((const ASL_fg *) asl) -> I.var_e_
 #define CON_DE    ((const ASL_fg *) asl) -> I.con_de_
@@ -37,29 +41,27 @@
 
 // The different option of IBEXOPT in Ampl
 double ibex_rel_eps_f=0, ibex_abs_eps_f=0, ibex_initial_loup=INFINITY, ibex_timeout=0, ibex_eps_x=0, ibex_bisect_ratio=0, ibex_eps_h=-1, ibex_relax_ratio=0;
-int ibex_trace2=-10, ibex_random_seed=0, ibex_objno=1;
+int ibex_trace2=-10, ibex_random_seed=0, ibex_objno=1, simpl_level=1;
 int	ibex_extended_COV=-1, ibex_anticipated_UB=-1, ibex_inHC4=-1, ibex_rigor=-1, ibex_kkt=-1 ;
 
 static
 keyword keywds[] = { // must be alphabetical order
 		KW(const_cast<char*>("abs_eps_f"), D_val, &ibex_abs_eps_f, const_cast<char*>("Absolute precision on the objective function. Default: 1.e-7. ")),
-//		KW(const_cast<char*>("anticipated_UB"), I_val, &ibex_anticipated_UB, const_cast<char*>("If true, the search space is not only contracted w.r.t. f(x)<=loup, but f(x)<=loup-eps. Default: 1 (enable). ")),
-//		KW(const_cast<char*>("bisect_ratio"), D_val, &ibex_bisect_ratio, const_cast<char*>("Ratio for choosing bisection point. Default: 0.5. ")),
+		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective. Default value is 1e-3. ")),
 		KW(const_cast<char*>("eps_h"), D_val, &ibex_eps_h, const_cast<char*>("Relaxation value of the equality constraints. Default: 1.e-8. ")),
-		KW(const_cast<char*>("eps_x"), D_val, &ibex_eps_x, const_cast<char*>("Precision on the variable (**Deprecated**). Default: 0. ")),
-		KW(const_cast<char*>("extended_COV"), I_val, &ibex_extended_COV, const_cast<char*>("Extended COV output file. Default: 1 (extended).")),
-		KW(const_cast<char*>("inHC4"), I_val, &ibex_inHC4, const_cast<char*>("Activate inHC4. Default: true. ")),
-		KW(const_cast<char*>("initial_loup"), D_val, &ibex_initial_loup, const_cast<char*>("Initilization of the upper bound with a known value. ")),
-//		KW(const_cast<char*>("kkt"), I_val, &ibex_kkt, const_cast<char*>("Activate KKT contractor. Default: true for unconstrained problems. ")),
-		KW(const_cast<char*>("objno"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
-		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 0. ")),
-		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective function. Default: 1.e-3. ")),
-//		KW(const_cast<char*>("relax_ratio"), D_val, &ibex_relax_ratio, const_cast<char*>("Fix-point ratio for contraction based on linear relaxation. Default: 0.2. ")),
-		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: false. ")),
 		KW(const_cast<char*>("timeout"), D_val, &ibex_timeout, const_cast<char*>("Timeout (time in seconds). Default: -1 (none). ")),
-		KW(const_cast<char*>("outlev"), I_val, &ibex_trace2, const_cast<char*>("Activate trace. Updates of lower and upper bound are printed while minimizing. Default: -1 (none). ")),
+		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 0. ")),
+		KW(const_cast<char*>("eps_x"), D_val, &ibex_eps_x, const_cast<char*>("Precision on the variable (**Deprecated**). Default: 0. ")),
+		KW(const_cast<char*>("simpl"), I_val, &simpl_level, const_cast<char*>("Expression simplification level. Possible values are:\n 	\t\t* 0:\tno simplification at all (fast).\n \t\t* 1:\tbasic simplifications (fairly fast). E.g. x+1+1 --> x+2\n \t\t* 2:\tmore advanced simplifications without developing (can be slow). E.g. x*x + x^2 --> 2x^2\n \t\t* 3:\tsimplifications with full polynomial developing (can blow up!). E.g. x*(x-1) + x --> x^2\n Default value is : 1.")),
+		KW(const_cast<char*>("initial_loup"), D_val, &ibex_initial_loup, const_cast<char*>("Initilization of the upper bound with a known value. ")),
+		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: false. ")),
+		KW(const_cast<char*>("kkt"), I_val, &ibex_kkt, const_cast<char*>("Activate KKT contractor. Default: 0. ")),
+		KW(const_cast<char*>("objno"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
+		KW(const_cast<char*>("trace"), I_val, &ibex_trace2, const_cast<char*>("Activate trace. Updates of lower and upper bound are printed while minimizing. Default: -1 (none). ")),
 		KW(const_cast<char*>("version"), Ver_val, 0, const_cast<char*>("report version")),
 		KW(const_cast<char*>("wantsol"), WS_val, 0, WS_desc_ASL+5)
+
+
 /** TODO
 	KW("timing",  I_val, &timing,  "report I/O and solution times: 1 = stdout, 2 = stderr, 3 = both"),
 	*/
@@ -90,14 +92,12 @@ namespace ibex {
 
 AmplOption::AmplOption():
 		abs_eps_f(OptimizerConfig::default_abs_eps_f),
-//		anticipated_UB(OptimizerConfig::default_anticipated_UB),
-//		bisect_ratio(DefaultOptimizerConfig::default_bisect_ratio),
 		eps_h(ExtendedSystem::default_eps_h),
 		eps_x(OptimizerConfig::default_eps_x),
 		extended_COV(OptimizerConfig::default_extended_cov),
 		inHC4(DefaultOptimizerConfig::default_inHC4),
 		initial_loup(POS_INFINITY),
-//		kkt(false),
+		kkt(false),
 		random_seed(DefaultOptimizerConfig::default_random_seed),
 		rel_eps_f(OptimizerConfig::default_rel_eps_f),
 //		relax_ratio(DefaultOptimizerConfig::default_relax_ratio),

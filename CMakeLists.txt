@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.5.1)
 
 project (IBEX_AMPL VERSION 1.0 LANGUAGES CXX)
 set (IBEX_AMPL_DESCRIPTION "Plugin to interface ibex and AMPL")
-set (IBEX_AMPL_URL "https://www.ibex-lib.org")
+set (IBEX_AMPL_URL "https://github.com/ibex-team/ibex-ampl/")
 set (IBEX_MIN_VERSION_REQ 2.8.9.1)
 
 find_package (IBEX ${IBEX_MIN_VERSION_REQ} REQUIRED)
