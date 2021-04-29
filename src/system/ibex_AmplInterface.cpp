@@ -40,40 +40,34 @@
 
 
 // The different option of IBEXOPT in Ampl
-double ibex_rel_eps_f=0, ibex_abs_eps_f=0, ibex_initial_loup=INFINITY, ibex_timeout=0, ibex_eps_x=0, ibex_bisect_ratio=0, ibex_eps_h=-1, ibex_relax_ratio=0;
-int ibex_trace2=-10, ibex_random_seed=0, ibex_objno=1, simpl_level=1;
-int	ibex_extended_COV=-1, ibex_anticipated_UB=-1, ibex_inHC4=-1, ibex_rigor=-1, ibex_kkt=-1 ;
+double ibex_rel_eps_f=0, ibex_abs_eps_f=0, ibex_initial_loup=INFINITY, ibex_timeout=0, ibex_eps_h=0;
+int ibex_trace2=0, ibex_random_seed=1, ibex_objno=1, ibex_simpl_level=1;
+int	ibex_rigor=0, ibex_kkt=0;
 
 static
 keyword keywds[] = { // must be alphabetical order
 		KW(const_cast<char*>("abs_eps_f"), D_val, &ibex_abs_eps_f, const_cast<char*>("Absolute precision on the objective function. Default: 1.e-7. ")),
-		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective. Default value is 1e-3. ")),
 		KW(const_cast<char*>("eps_h"), D_val, &ibex_eps_h, const_cast<char*>("Relaxation value of the equality constraints. Default: 1.e-8. ")),
-		KW(const_cast<char*>("timeout"), D_val, &ibex_timeout, const_cast<char*>("Timeout (time in seconds). Default: -1 (none). ")),
-		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 0. ")),
-		KW(const_cast<char*>("eps_x"), D_val, &ibex_eps_x, const_cast<char*>("Precision on the variable (**Deprecated**). Default: 0. ")),
-		KW(const_cast<char*>("simpl"), I_val, &simpl_level, const_cast<char*>("Expression simplification level. Possible values are:\n 	\t\t* 0:\tno simplification at all (fast).\n \t\t* 1:\tbasic simplifications (fairly fast). E.g. x+1+1 --> x+2\n \t\t* 2:\tmore advanced simplifications without developing (can be slow). E.g. x*x + x^2 --> 2x^2\n \t\t* 3:\tsimplifications with full polynomial developing (can blow up!). E.g. x*(x-1) + x --> x^2\n Default value is : 1.")),
-		KW(const_cast<char*>("initial_loup"), D_val, &ibex_initial_loup, const_cast<char*>("Initilization of the upper bound with a known value. ")),
-		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: false. ")),
+		KW(const_cast<char*>("initial_loup"), D_val, &ibex_initial_loup, const_cast<char*>("Initialization of the upper bound with a known value. Default: +infinity. ")),
 		KW(const_cast<char*>("kkt"), I_val, &ibex_kkt, const_cast<char*>("Activate KKT contractor. Default: 0. ")),
 		KW(const_cast<char*>("objno"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
-		KW(const_cast<char*>("trace"), I_val, &ibex_trace2, const_cast<char*>("Activate trace. Updates of lower and upper bound are printed while minimizing. Default: -1 (none). ")),
+		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 1. ")),
+		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective. Default value is 1e-3. ")),
+		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: 0. ")),
+		KW(const_cast<char*>("simpl_level"), I_val, &ibex_simpl_level, const_cast<char*>("Expression simplification level. Possible values are:\n \t\t* 0:\t no simplification at all (fast).\n \t\t* 1:\t basic simplifications (fairly fast). E.g. x+1+1 --> x+2\n \t\t* 2:\t more advanced simplifications without developing (can be slow). E.g. x*x + x^2 --> 2x^2\n \t\t* 3:\t simplifications with full polynomial developing (can blow up!). E.g. x*(x-1) + x --> x^2\n Default value is : 1.")),
+		KW(const_cast<char*>("timeout"), D_val, &ibex_timeout, const_cast<char*>("Timeout (time in seconds). Default: -1 (none). ")),
+		KW(const_cast<char*>("trace"), I_val, &ibex_trace2, const_cast<char*>("Activate trace. Updates of lower and upper bound are printed while minimizing. Default: 0 (none). ")),
 		KW(const_cast<char*>("version"), Ver_val, 0, const_cast<char*>("report version")),
 		KW(const_cast<char*>("wantsol"), WS_val, 0, WS_desc_ASL+5)
-
-
-/** TODO
-	KW("timing",  I_val, &timing,  "report I/O and solution times: 1 = stdout, 2 = stderr, 3 = both"),
-	*/
 };
 
 
-static std::string xxxvers = (std::string)("AMPL/IBEXopt interface Version ")+ (_IBEX_RELEASE_) + (std::string)("\n");
+static std::string xxxvers = (std::string)("IbexOpt/AMPL Version ")+ (_IBEX_RELEASE_) + (std::string)("\n");
 
 static
 Option_Info Oinfo = {
 		const_cast<char*>("ibexopt"),          /* invocation name of solver */
-		const_cast<char*>("IBEXOPT "),         /* solver name in startup "banner" */
+		const_cast<char*>("IbexOpt "),         /* solver name in startup "banner" */
 		const_cast<char*>("ibexopt_options"),  /* name of solver_options environment var */
 		keywds,                                /* key words */
 		nkeywds,                               /* number of key words */
@@ -92,18 +86,16 @@ namespace ibex {
 
 AmplOption::AmplOption():
 		abs_eps_f(OptimizerConfig::default_abs_eps_f),
-		eps_h(ExtendedSystem::default_eps_h),
-		eps_x(OptimizerConfig::default_eps_x),
-		extended_COV(OptimizerConfig::default_extended_cov),
-		inHC4(DefaultOptimizerConfig::default_inHC4),
-		initial_loup(POS_INFINITY),
-		kkt(false),
-		random_seed(DefaultOptimizerConfig::default_random_seed),
 		rel_eps_f(OptimizerConfig::default_rel_eps_f),
-//		relax_ratio(DefaultOptimizerConfig::default_relax_ratio),
+		eps_h(ExtendedSystem::default_eps_h),
+		timeout(OptimizerConfig::default_timeout),
+		random_seed(DefaultOptimizerConfig::default_random_seed),
+		simpl_level(ExprNode::default_simpl_level),
+		initial_loup(POS_INFINITY),
 		rigor(DefaultOptimizerConfig::default_rigor),
-		trace(OptimizerConfig::default_trace),
-		timeout(OptimizerConfig::default_timeout)  {}
+		kkt(false),
+		objno(1),
+		trace(OptimizerConfig::default_trace) {}
 
 AmplInterface::AmplInterface(std::string nlfile) : asl(NULL), _nlfile(nlfile), _x(NULL), option(){
 
@@ -220,51 +212,48 @@ bool AmplInterface::readASLfg() {
 
 // Reads the solver option from the .nl file through the ASL methods
 bool AmplInterface::readoption() {
-	if (ibex_abs_eps_f) {
+
+	if (ibex_abs_eps_f!=0) {
 		option.abs_eps_f = ibex_abs_eps_f;
 	}
-//	if (ibex_anticipated_UB!=-1) {
-//		option.anticipated_UB = (ibex_anticipated_UB!=0);
-//	}
-//	if (ibex_bisect_ratio) {
-//		option.bisect_ratio = ibex_bisect_ratio;
-//	}
-	if (ibex_eps_h!=-1) {
+	if (ibex_rel_eps_f!=0) {
+		option.rel_eps_f = ibex_rel_eps_f;
+	}
+
+	if (ibex_eps_h!=0) {
 		option.eps_h = ibex_eps_h;
 	}
-	if (ibex_eps_x) {
-		option.eps_x = ibex_eps_x;
+
+	if (ibex_timeout!=0) {
+		option.timeout = ibex_timeout;
 	}
-	if (ibex_extended_COV!=-1) {
-		option.extended_COV = (ibex_extended_COV!=0);
+
+	if (ibex_random_seed!=1) {
+		option.random_seed = ibex_random_seed;
 	}
-	if (ibex_inHC4!=-1) {
-		option.inHC4 = (ibex_inHC4!=0);
+
+	if (ibex_simpl_level!=1) {
+		option.simpl_level = ibex_simpl_level;
 	}
+
 	if (ibex_initial_loup < POS_INFINITY) {
 		option.initial_loup = ibex_initial_loup;
 	}
 
-//	if (ibex_kkt!=-1) {
-//		option.kkt = (ibex_kkt!=0);
-//	}
-	if (ibex_random_seed) {
-		option.random_seed = ibex_random_seed;
+	if (ibex_rigor!=0) {
+		option.rigor = true;
 	}
-	if (ibex_rel_eps_f) {
-		option.rel_eps_f = ibex_rel_eps_f;
+
+	if (ibex_kkt!=0) {
+		option.kkt = true;
 	}
-//	if (ibex_relax_ratio) {
-//		option.relax_ratio = ibex_relax_ratio;
-//	}
-	if (ibex_rigor!=-1) {
-		option.rigor = (ibex_rigor!=0);
+
+	if (ibex_objno!=1) {
+		option.objno = ibex_objno;
 	}
-	if (ibex_trace2!=-10) {
+
+	if (ibex_trace2!=0) {
 		option.trace = ibex_trace2;
-	}
-	if (ibex_timeout) {
-		option.timeout = ibex_timeout;
 	}
 
 	return true;

@@ -43,35 +43,43 @@ namespace ibex {
 class AmplOption {
 public:
 	AmplOption();
-
-	/** Goal absolute precision: 1e-7. */
+	/** Absolute precision on the objective function. Default: 1.e-7. */
 	double abs_eps_f;
-//	/** Anticipated upper bounding : true (enabled). */
-//	bool anticipated_UB;
-//	/** Ratio for choosing bisection point. */
-//	double bisect_ratio;
-	/**  Equality thickness. */
+
+	/** Relaxation value of the equality constraints. Default: 1.e-8.  */
 	double eps_h;
-	/** Bisection precision: 0. */
-	double eps_x;
-	/** COV output mode: extended (enabled). */
-	bool extended_COV;
-	/** inHC4 mode: true (enabled). */
-	bool inHC4;
-	/** Initial value of the upper bound */
+
+	/** Initialization of the upper bound with a known value. Default: +infinity. */
 	double initial_loup;
+
+	/** Activate KKT contractor. Default: 0.  */
 	bool kkt;
-	int random_seed;
-	/** Goal relative precision: 1e-3. */
+
+	/** Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1. */
+	int objno;
+
+	/** Random seed (useful for reproducibility). Default: 1.  */
+	double random_seed;
+
+	/** Relative precision on the objective. Default value is 1e-3.  */
 	double rel_eps_f;
-//	/** Fix-point ratio for contraction based on linear relaxation. */
-//	double relax_ratio;
-	/** Activate/deactivate rigor mode. If true, feasibility of equalities is certified. */
+
+	/** Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: 0.  */
 	bool rigor;
-	/** Trace mode: 0 (none). */
-	int trace;
-	/** Timeout: -1 (none). */
+
+	/** Expression simplification level. Possible values are:\n \t\t* 0:\t no simplification at all (fast).
+	 *  * 1: basic simplifications (fairly fast). E.g. x+1+1 --> x+2
+	 *  * 2: more advanced simplifications without developing (can be slow). E.g. x*x + x^2 --> 2x^2
+	 *  * 3: simplifications with full polynomial developing (can blow up!). E.g. x*(x-1) + x --> x^2
+	 *  Default value is : 1. */
+	int simpl_level;
+
+	/** Timeout (time in seconds). Default: -1 (none).  */
 	double timeout;
+
+	/** Activate trace. Updates of lower and upper bound are printed while minimizing. Default: -1 (none).  */
+	int trace;
+
 };
 
 
@@ -82,6 +90,8 @@ private:
 	std::string _nlfile;
 	const ExprSymbol ** _x;
 
+	/**  var_data: map which containts expressions of the temporary variable already defined */
+	/**  opmap: map to convert efunc* of AMPL to an operator */
 #ifdef __GNUC__
 #include <ciso646> // just to initialize _LIBCPP_VERSION
 #ifdef _LIBCPP_VERSION

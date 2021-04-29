@@ -131,10 +131,11 @@ int main(int argc, char** argv) {
 		if (extension == "nl" || option_ampl) {
 
 
-			AmplInterface ampl(filename.Get());
+			ampl = new AmplInterface(filename.Get());
+			ampl->set_simplification_level(ampl->option.simpl_level);
 			if (simpl_level)
-				ampl.set_simplification_level(simpl_level.Get());
-			sys = new System(ampl);
+				ampl->set_simplification_level(simpl_level.Get());
+			sys = new System(*ampl);
 
 		}
 		else {
@@ -146,22 +147,18 @@ int main(int argc, char** argv) {
 
 		if (extension == "nl" || option_ampl) {
 
-			//config.set_bisect_ratio(ampl->option.bisect_ratio);
-			//config.set_relax_ratio(ampl->option.relax_ratio);
-			//config.set_anticipated_UB(ampl->option.anticipated_UB);
 			config.set_rel_eps_f(ampl->option.rel_eps_f);
 			config.set_abs_eps_f(ampl->option.abs_eps_f);
 			config.set_eps_h(ampl->option.eps_h);
-			config.set_eps_x(ampl->option.eps_x);
-			config.set_rigor(ampl->option.rigor);
-			//config.set_kkt(ampl->option.kkt);
-			config.set_random_seed(ampl->option.random_seed);
 			config.set_timeout(ampl->option.timeout);
-			config.set_trace(ampl->option.trace);
-			config.set_inHC4(ampl->option.inHC4);
-			config.set_extended_cov(ampl->option.extended_COV);
+			config.set_random_seed(ampl->option.random_seed);
 
 			initial_loup1 = ampl->option.initial_loup;
+			config.set_rigor(ampl->option.rigor);
+			config.set_kkt(ampl->option.kkt);
+
+			config.set_trace(ampl->option.trace);
+
 		}
 
 
