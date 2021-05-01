@@ -6,7 +6,7 @@ Interface of IBEX with AMPL
 
 http://www.ibex-lib.org
 
-1) Install IBEX with cmake:
+1) Install IBEX with cmake and FILIB:
 [https://github.com/ibex-team/ibex-lib](https://github.com/ibex-team/ibex-lib)
 
 2) download the ASL librairy and install it with cmake
