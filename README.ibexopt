@@ -37,17 +37,17 @@ solve_message.
 
 	Value	Message
 
-	0	OPTIMIZATION SUCCESS! The global minimum 
-		(with respect to the precision required) 
-		has been found. In particular, at least 
+	0	OPTIMIZATION SUCCESS! 
+		The global minimum (with respect to the precision 
+		required) has been found. In particular, at least 
 		one feasible point has been found, less 
 		than obj_init_bound, and in the time limit.
 	200	INFEASIBLE PORBLEM.
-		No feasible point exist less than obj_init_bound.
+		No feasible point exist less than initial_loup.
 		In particular, the function returns INFEASIBLE 
 		if the initial bound \"obj_init_bound\" is LESS 
 		than the true minimum (this case is only possible
-		if obj_abs_prec and obj_rel_prec are 0). In the
+		if abs_eps_f and rel_eps_f are 0). In the
 		latter case, there may exist feasible points.
 	201	NO FEASIBLE POINT FOUND. 
 		No feasible point could be found less than 
@@ -78,7 +78,7 @@ ibexopt option
 
 To set these directives, assign a string specifying their values to the AMPL option ibexopt_options. For example:
 
-ampl: option ibexopt_options 'rel_eps_f=1e-5 timeout=1000 rigor=1 simpl=2';
+	option ibexopt_options 'rel_eps_f=1e-5 timeout=1000 rigor=1 simpl_level=2';
 
 
 Keywords are followed by a value except those marked No value is expected in the listing.
@@ -86,10 +86,10 @@ Keywords are followed by a value except those marked No value is expected in the
  rel_eps_f		Relative precision on the objective. Default value is 1e-3. 
  abs_eps_f		Absolute precision on the objective function. Default: 1.e-7. 
  eps_h			Relaxation value of the equality constraints. Default: 1.e-8. 
- random_seed	RRandom seed (useful for reproducibility). Default: 1.  
+ random_seed	Random seed (useful for reproducibility). Default: 1.  
  timeout		Timeout (time in seconds). Default: -1 (none). 
- objno			Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.
- simpl_leval	Expression simplification level. Possible values are:
+ obj_num		Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.
+ simpl_level	Expression simplification level. Possible values are:
 				0:	no simplification at all (fast).
 				1:	basic simplifications (fairly fast). E.g. x+1+1 --> x+2
 				2:	more advanced simplifications without developing (can be slow). 
@@ -97,7 +97,7 @@ Keywords are followed by a value except those marked No value is expected in the
 				3:	simplifications with full polynomial developing (can blow up!). 
 					E.g. x*(x-1) + x --> x^2
 				Default value is : 1.
- initial_loup	Initialization of the upper bound with a known value. Default: +infinity. 
+ obj_init_bound	Initialization of the upper bound with a known value. Default: +infinity. 
  rigor			Activate rigor mode (certify feasibility of equalities). 
  				If true, feasibility of equalities is certified. Default: 0. 
  kkt			Activate contractor based on Kuhn-Tucker conditions. Default: 0.

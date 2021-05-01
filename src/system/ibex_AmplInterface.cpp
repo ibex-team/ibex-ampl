@@ -48,9 +48,9 @@ static
 keyword keywds[] = { // must be alphabetical order
 		KW(const_cast<char*>("abs_eps_f"), D_val, &ibex_abs_eps_f, const_cast<char*>("Absolute precision on the objective function. Default: 1.e-7. ")),
 		KW(const_cast<char*>("eps_h"), D_val, &ibex_eps_h, const_cast<char*>("Relaxation value of the equality constraints. Default: 1.e-8. ")),
-		KW(const_cast<char*>("initial_loup"), D_val, &ibex_initial_loup, const_cast<char*>("Initialization of the upper bound with a known value. Default: +infinity. ")),
 		KW(const_cast<char*>("kkt"), I_val, &ibex_kkt, const_cast<char*>("Activate KKT contractor. Default: 0. ")),
-		KW(const_cast<char*>("objno"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
+		KW(const_cast<char*>("obj_init_bound"), D_val, &ibex_initial_loup, const_cast<char*>("Initialization of the upper bound with a known value. Default: +infinity. ")),
+		KW(const_cast<char*>("obj_num"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
 		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 1. ")),
 		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective. Default value is 1e-3. ")),
 		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: 0. ")),
