@@ -26,5 +26,6 @@ subject to con9 :  x9  - 0.19612740*(x10*x6*x8)**3 + x6**4*x8**7  - 0.34504906=0
 subject to con10 : x10 - 0.21466544*(x4*x8*x1)**3  + x8**4*x1**7  - 0.42651102=0;
 subject to con11 : x11 + x12 + x13 =0;
 
+option auxfiles rc;
 write gI5; 
 

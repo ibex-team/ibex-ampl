@@ -11,5 +11,6 @@ s.t. con1: x+y <= 0;
 s.t. con2: z2-y <= 0;
 s.t. con3: x-z3 >= 0;
 
+option auxfiles rc;
 write gex6;
 

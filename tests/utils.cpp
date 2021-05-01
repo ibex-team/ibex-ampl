@@ -20,15 +20,16 @@ double ERROR = 1e-10;
 
 bool sameExpr(const ExprNode& node, const char* expr) {
 	std::stringstream s;
+	s.precision(15);
 	s << node;
 	if (strcmp(s.str().c_str(),expr)==0)
 		return true;
 	else  {
-	/*	std::cout<< "Expr tested : " << std::endl;
+		std::cout<< "Expr tested : " << std::endl;
 		std::cout<< s.str().c_str() << std::endl;
 		std::cout<< "Expr wanted : " << std::endl;
 		std::cout<< expr << std::endl;
-	*/	return false;
+		return false;
 	}
 }
 

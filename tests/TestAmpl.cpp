@@ -96,7 +96,7 @@ void TestAmpl::factory01() {
 	for (int i; i <13; i++)
 		CPPUNIT_ASSERT(sys.args[i].dim==Dim::scalar());
 	check(sys.goal->eval(IntervalVector(13,Interval(0))),Interval(-1));
-	//CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(y-cos(_svar[2]))"));
+	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"((-exp(x[1]))+y)"));
 
 	CPPUNIT_ASSERT(sys.box.size()==13);
 	CPPUNIT_ASSERT(sys.box[12]==Interval(-1,1));
@@ -105,13 +105,13 @@ void TestAmpl::factory01() {
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==13);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==13);
 	CPPUNIT_ASSERT(sys.f_ctrs.image_dim()==4);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((((_svar[4]*_svar[2])+(_svar[5]*_svar[1]))+(_svar[6]*_svar[3]))-10)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((((_svar[7]*_svar[2])+(_svar[8]*_svar[1]))+(_svar[9]*_svar[3]))-11)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((((_svar[10]*_svar[2])+(_svar[11]*_svar[1]))+(_svar[12]*_svar[3]))-12)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((((A[0,0]*x[0])+(A[0,1]*x[1]))+(A[0,2]*x[2]))-10)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((((A[1,0]*x[0])+(A[1,1]*x[1]))+(A[1,2]*x[2]))-11)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((((A[2,0]*x[0])+(A[2,1]*x[1]))+(A[2,2]*x[2]))-12)"));
 	CPPUNIT_ASSERT(sys.ops[0]==EQ);
 	CPPUNIT_ASSERT(sys.ops[1]==EQ);
 	CPPUNIT_ASSERT(sys.ops[2]==EQ);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((-_svar[2])+_svar[13])"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((-x[0])+y)"));
 	CPPUNIT_ASSERT(sys.ops[3]==GEQ);
 
 	delete &sys;
@@ -129,14 +129,15 @@ void TestAmpl::factory02() {
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==2);
 	CPPUNIT_ASSERT(sys.f_ctrs.image_dim()==5);
 
-	CPPUNIT_ASSERT(sameExpr(sys.ctrs[0].f.expr(),"((_svar[1]+_svar[2])-1)"));
-	CPPUNIT_ASSERT(sameExpr(sys.ctrs[1].f.expr(),"((_svar[1]+_svar[2])+1)"));
+	CPPUNIT_ASSERT(sameExpr(sys.ctrs[0].f.expr(),"((x+y)-1)"));
+	CPPUNIT_ASSERT(sameExpr(sys.ctrs[1].f.expr(),"((x+y)+1)"));
 	CPPUNIT_ASSERT(sys.ctrs[0].op==LEQ);
 	CPPUNIT_ASSERT(sys.ctrs[1].op==GEQ);
 
 	delete &sys;
 
 }
+
 
 
 
@@ -150,9 +151,7 @@ void TestAmpl::extend() {
 	CPPUNIT_ASSERT(sys.args.size()==5);
 	for (int i; i <5; i++)
 		CPPUNIT_ASSERT(sys.args[i].dim==Dim::scalar());
-	//CPPUNIT_ASSERT(sys.args[5].dim==Dim::scalar());
 	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"__goal__"));
-	//CPPUNIT_ASSERT(sys.goal==NULL);
 
 	CPPUNIT_ASSERT(sys.box.size()==5);
 
@@ -160,16 +159,17 @@ void TestAmpl::extend() {
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==5);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==5);
 	CPPUNIT_ASSERT(sys.f_ctrs.image_dim()==4);
-	CPPUNIT_ASSERT(sameExpr(sys.ctrs[0].f.expr(),"(((-cos(_svar[1]))+_svar[4])-__goal__)"));
+	CPPUNIT_ASSERT(sameExpr(sys.ctrs[0].f.expr(),"(((-cos(x[1]))+y)-__goal__)"));
 	CPPUNIT_ASSERT(sys.ctrs[0].op==EQ);
-	CPPUNIT_ASSERT(sameExpr(sys.ctrs[1].f.expr(),"(-(_svar[1]+_svar[2]))"));
+	CPPUNIT_ASSERT(sameExpr(sys.ctrs[1].f.expr(),"(-(x[1]+x[0]))"));
 	CPPUNIT_ASSERT(sys.ctrs[1].op==LEQ);
-	CPPUNIT_ASSERT(sameExpr(sys.ctrs[2].f.expr(),"((_svar[1]+_svar[3])-_svar[4])"));
+	CPPUNIT_ASSERT(sameExpr(sys.ctrs[2].f.expr(),"((x[1]+x[2])-y)"));
 	CPPUNIT_ASSERT(sys.ctrs[2].op==LEQ);
-	CPPUNIT_ASSERT(sameExpr(sys.ctrs[3].f.expr(),"(-((-_svar[2])+_svar[4]))"));
+	CPPUNIT_ASSERT(sameExpr(sys.ctrs[3].f.expr(),"(-((-x[0])+y))"));
 	CPPUNIT_ASSERT(sys.ctrs[3].op==LEQ);
 
 }
+
 
 void TestAmpl::normalize() {
 	System& _sys(*ampl_sysex3());
@@ -184,13 +184,13 @@ void TestAmpl::normalize() {
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==2);
 	CPPUNIT_ASSERT(sys.f_ctrs.image_dim()==6);
 
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((_svar[1]+_svar[2])-1)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"(-((_svar[1]+_svar[2])+1))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((_svar[1]-_svar[2])-1)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"(-((_svar[1]-_svar[2])+1))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((_svar[1]-_svar[2])-0.5)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((-(_svar[1]-_svar[2]))+-0.5)") ||
-				   sameExpr(sys.f_ctrs[5].expr(),"((-(_svar[1]-_svar[2]))-0.5)")   );
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((x+y)-1)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"(-((x+y)+1))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((x-y)-1)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"(-((x-y)+1))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((x-y)-0.5)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((-(x-y))+-0.5)") ||
+				   sameExpr(sys.f_ctrs[5].expr(),"((-(x-y))-0.5)")   );
 	CPPUNIT_ASSERT(sys.ctrs[0].op==LEQ);
 	CPPUNIT_ASSERT(sys.ctrs[1].op==LEQ);
 	CPPUNIT_ASSERT(sys.ctrs[2].op==LEQ);
@@ -198,6 +198,7 @@ void TestAmpl::normalize() {
 	CPPUNIT_ASSERT(sys.ctrs[4].op==LEQ);
 	CPPUNIT_ASSERT(sys.ctrs[5].op==LEQ);
 }
+
 
 void TestAmpl::merge() {
 
@@ -216,13 +217,14 @@ void TestAmpl::merge() {
 void TestAmpl::variable1() {
 	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex4.nl" );
 	System sys(inter);
-	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(_svar[1]+_svar[2])"));
+
+	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(x+y)"));
 	CPPUNIT_ASSERT(sys.ctrs.size()==3);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==2);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==2);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"(_svar[1]+_svar[2])"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"_svar[1]"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"(-_svar[2])"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"(x+y)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"x"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"(-y)"));
 	CPPUNIT_ASSERT(sys.ops[0]==EQ);
 	CPPUNIT_ASSERT(sys.ops[1]==LEQ);
 	CPPUNIT_ASSERT(sys.ops[2]==GEQ);
@@ -232,13 +234,13 @@ void TestAmpl::variable1() {
 void TestAmpl::variable2() {
 	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex5.nl" );
 	System sys(inter);
-	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))+_svar[2])"));
+	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"(((x+y)*(x+y))+y)"));
 	CPPUNIT_ASSERT(sys.ctrs.size()==3);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==2);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==2);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"(_svar[1]+_svar[2])"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"(-_svar[2])"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((x+y)*(x+y))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"(x+y)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"(-y)"));
 	CPPUNIT_ASSERT(sys.ops[0]==LEQ);
 	CPPUNIT_ASSERT(sys.ops[1]==EQ);
 	CPPUNIT_ASSERT(sys.ops[2]==GEQ);
@@ -247,15 +249,86 @@ void TestAmpl::variable2() {
 void TestAmpl::variable3() {
 	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex6.nl" );
 	System sys(inter);
-	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"((((_svar[1]+_svar[2])*(((((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))+((_svar[1]+_svar[2])*(_svar[1]+_svar[2])))-_svar[1])+_svar[2]))+((((((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))+((_svar[1]+_svar[2])*(_svar[1]+_svar[2])))-_svar[1])+_svar[2])*(((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))+_svar[2])))-_svar[1])"));
+
+	CPPUNIT_ASSERT(sameExpr(sys.goal->expr(),"((((x+y)*(((((x+y)*(x+y))+((x+y)*(x+y)))-x)+y))+((((((x+y)*(x+y))+((x+y)*(x+y)))-x)+y)*(((x+y)*(x+y))+y)))-x)"));
 	CPPUNIT_ASSERT(sys.ctrs.size()==3);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==2);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==2);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"(((-(((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))+((_svar[1]+_svar[2])*(_svar[1]+_svar[2]))))+(2*_svar[1]))-_svar[2])"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"(_svar[1]+_svar[2])"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((x+y)*(x+y))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"(((-(((x+y)*(x+y))+((x+y)*(x+y))))+(2*x))-y)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"(x+y)"));
 	CPPUNIT_ASSERT(sys.ops[0]==LEQ);
 	CPPUNIT_ASSERT(sys.ops[1]==GEQ);
 	CPPUNIT_ASSERT(sys.ops[2]==LEQ);
 }
+
+void TestAmpl::I5() {
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/I5.nl" );
+	System sys(inter);
+
+	CPPUNIT_ASSERT(sys.ctrs.size()==11);
+	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==13);
+	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==13);
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((((x3^4*x9^7)+(-0.18324757*((x4*x3)*x9)^3))+x1)-0.25428722)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((((x10^4*x6^7)+(-0.16275449*((x1*x10)*x6)^3))+x2)-0.37842197)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((((x2^4*x10^7)+(-0.16955071*((x1*x2)*x10)^3))+x3)-0.27162577)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((((x1^4*x6^7)+(-0.15585316*((x7*x1)*x6)^3))+x4)-0.19807914)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((((x6^4*x3^7)+(-0.1995092*((x7*x6)*x3)^3))+x5)-0.44166728)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((((x5^4*x10^7)+(-0.18922793*((x8*x5)*x10)^3))+x6)-0.14654113)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((((x5^4*x8^7)+(-0.21180486*((x2*x5)*x8)^3))+x7)-0.42937161)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[7].expr(),"((((x7^4*x6^7)+(-0.17081208*((x1*x7)*x6)^3))+x8)-0.07056438)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[8].expr(),"((((x6^4*x8^7)+(-0.1961274*((x10*x6)*x8)^3))+x9)-0.34504906)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[9].expr(),"((((x8^4*x1^7)+(-0.21466544*((x4*x8)*x1)^3))+x10)-0.42651102)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[10].expr(),"((x11+x12)+x13)"));
+	CPPUNIT_ASSERT(sys.ops[0]==EQ);
+	CPPUNIT_ASSERT(sys.ops[1]==EQ);
+	CPPUNIT_ASSERT(sys.ops[2]==EQ);
+	CPPUNIT_ASSERT(sys.ops[3]==EQ);
+	CPPUNIT_ASSERT(sys.ops[4]==EQ);
+	CPPUNIT_ASSERT(sys.ops[5]==EQ);
+	CPPUNIT_ASSERT(sys.ops[6]==EQ);
+	CPPUNIT_ASSERT(sys.ops[7]==EQ);
+	CPPUNIT_ASSERT(sys.ops[8]==EQ);
+	CPPUNIT_ASSERT(sys.ops[9]==EQ);
+	CPPUNIT_ASSERT(sys.ops[10]==EQ);
+}
+
+void TestAmpl::bearing() {
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/bearing.nl" );
+	System sys(inter);
+
+	CPPUNIT_ASSERT(sys.ctrs.size()==12);
+	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==13);
+	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==13);
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((-1.42857142857143*(x4*x6))+(10000*x8))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((10*(x7*x9))-(0.00968946189201592*(x3*(x1^4-x2^4))))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((143.3076*(x10*x4))+(-10000*x7))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((3.1415927*(x6*(0.001*x9)^3))-(6e-06*((x3*x4)*x13)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((101000*(x12*x13))-(1.57079635*(x6*x14)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((-10964781961.4318*exp((-3.55*log(x11))))+(0.434294481903252*log(((8.112*x3)+0.8))))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((0.0307*x4^2)-(0.3864*((0.0062831854*(x1*x9))^2*x6)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[7].expr(),"((log(x2)-log(x1))+x13)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[8].expr(),"((x2^2-x1^2)+x14)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[9].expr(),"(((-0.5*x10)+x11)-560)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[10].expr(),"(x1-x2)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[11].expr(),"((101000*x12)+(-15707.9635*x14))"));
+
+	CPPUNIT_ASSERT(sys.ops[0]==EQ);
+	CPPUNIT_ASSERT(sys.ops[1]==EQ);
+	CPPUNIT_ASSERT(sys.ops[2]==EQ);
+	CPPUNIT_ASSERT(sys.ops[3]==EQ);
+	CPPUNIT_ASSERT(sys.ops[4]==EQ);
+	CPPUNIT_ASSERT(sys.ops[5]==EQ);
+	CPPUNIT_ASSERT(sys.ops[6]==LEQ);
+	CPPUNIT_ASSERT(sys.ops[7]==EQ);
+	CPPUNIT_ASSERT(sys.ops[8]==EQ);
+	CPPUNIT_ASSERT(sys.ops[9]==EQ);
+	CPPUNIT_ASSERT(sys.ops[10]==GEQ);
+	CPPUNIT_ASSERT(sys.ops[11]==LEQ);
+
+}
+
+
+
+
 } // end namespace

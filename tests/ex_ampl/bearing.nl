@@ -1,4 +1,4 @@
-g9 2 1 0 12 20170902 0 4 0 240	# problem bearing
+g9 2 1 0 12 20160714 0 4 0 240	# problem bearing
  13 12 1 0 9	# vars, constraints, objectives, ranges, eqns
  9 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear
@@ -6,7 +6,7 @@ g9 2 1 0 12 20170902 0 4 0 240	# problem bearing
  0 0 0 1	# linear network variables; functions; arith, flags
  0 0 0 0 0	# discrete variables: binary, integer, nonlinear (b,c,o)
  38 2	# nonzeros in Jacobian, gradients
- 0 0	# max name lengths: constraints, variables
+ 5 3	# max name lengths: constraints, variables
  0 0 0 0 0	# common exprs: b,c,o,c1,o1
 b
 0 1 16

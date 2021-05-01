@@ -30,5 +30,5 @@ subject to con11 : - (log(x1) - log(x2)) + x13 =0;
 subject to con12 : - (x1^2 - x2^2) + x14 =0;
 
 
-
+option auxfiles rc;
 write gbearing; 
