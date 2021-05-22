@@ -132,7 +132,6 @@ int main(int argc, char** argv) {
 
 
 			ampl = new AmplInterface(filename.Get());
-			ampl->set_simplification_level(ampl->option.simpl_level);
 			if (simpl_level)
 				ampl->set_simplification_level(simpl_level.Get());
 			sys = new System(*ampl);
@@ -147,17 +146,24 @@ int main(int argc, char** argv) {
 
 		if (extension == "nl" || option_ampl) {
 
-			config.set_rel_eps_f(ampl->option.rel_eps_f);
-			config.set_abs_eps_f(ampl->option.abs_eps_f);
-			config.set_eps_h(ampl->option.eps_h);
-			config.set_timeout(ampl->option.timeout);
-			config.set_random_seed(ampl->option.random_seed);
+			config.set_rel_eps_f(ampl->get_rel_eps_f());
+			config.set_abs_eps_f(ampl->get_abs_eps_f());
+			config.set_eps_h(ampl->get_eps_h());
+			config.set_timeout(ampl->get_timeout());
+			config.set_random_seed(ampl->get_random_seed());
 
-			initial_loup1 = ampl->option.initial_loup;
-			config.set_rigor(ampl->option.rigor);
-			config.set_kkt(ampl->option.kkt);
+			if (ampl->get_rigor() >=0) {
+				config.set_rigor(ampl->get_rigor());
+			}
+			if (ampl->get_kkt() >=0) {
+				config.set_kkt(ampl->get_kkt());
+			}
+			if (ampl->get_inHC4() >=0) {
+				config.set_inHC4(ampl->get_inHC4());
+			}
 
-			config.set_trace(ampl->option.trace);
+			config.set_trace(ampl->get_trace());
+			initial_loup1 = ampl->get_init_obj_value();
 
 		}
 
@@ -179,24 +185,24 @@ int main(int argc, char** argv) {
 			config.set_rel_eps_f(rel_eps_f.Get());
 
 			if (!quiet)
-				cout << "  rel-eps-f:\t\t" << rel_eps_f.Get() << "\t(relative precision on objective)" << endl;
+				cout << "  rel_eps_f:\t\t" << rel_eps_f.Get() << "\t(relative precision on objective)" << endl;
 		}
 
 		if (abs_eps_f) {
 			config.set_abs_eps_f(abs_eps_f.Get());
 			if (!quiet)
-				cout << "  abs-eps-f:\t\t" << abs_eps_f.Get() << "\t(absolute precision on objective)" << endl;
+				cout << "  abs_eps_f:\t\t" << abs_eps_f.Get() << "\t(absolute precision on objective)" << endl;
 		}
 
 		if (eps_h) {
 			config.set_eps_h(eps_h.Get());
 			if (!quiet)
-				cout << "  eps-h:\t\t" << eps_h.Get() << "\t(equality thickening)" << endl;
+				cout << "  eps_h:\t\t" << eps_h.Get() << "\t(equality thickening)" << endl;
 		}
 
 		if (eps_x_arg) {
 			if (!quiet)
-				cout << "  eps-x:\t\t" << eps_x_arg.Get() << "\t(precision on variables domain)" << endl;
+				cout << "  eps_x:\t\t" << eps_x_arg.Get() << "\t(precision on variables domain)" << endl;
 		}
 
 		Vector eps_x(sys->nb_var, eps_x_arg ? eps_x_arg.Get() : OptimizerConfig::default_eps_x);
@@ -327,6 +333,22 @@ int main(int argc, char** argv) {
 		if (!quiet) {
 			cout << "*******************************************************" << endl << endl;
 		}
+
+	// TEST
+
+		std::cout << " TEST config AMPL:"<< std::endl;
+		std::cout << ampl->get_abs_eps_f() << std::endl;
+		std::cout << ampl->get_rel_eps_f() << std::endl;
+		std::cout << ampl->get_eps_h() << std::endl;
+		std::cout << ampl->get_timeout() << std::endl;
+		std::cout << ampl->get_random_seed() << std::endl;
+		std::cout << ampl->get_init_obj_value() << std::endl;
+		std::cout << ampl->get_rigor() << std::endl;
+		std::cout << ampl->get_kkt() << std::endl;
+		std::cout << ampl->get_obj_numb() << std::endl;
+		std::cout << ampl->get_trace() << std::endl;
+
+
 
 		// Build the default optimizer
 		Optimizer o(config);

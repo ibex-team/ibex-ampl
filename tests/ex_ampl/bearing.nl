@@ -1,4 +1,4 @@
-g9 2 1 0 12 20160714 0 4 0 240	# problem bearing
+g9 2 1 0 12 20190616 0 4 0 240	# problem bearing
  13 12 1 0 9	# vars, constraints, objectives, ranges, eqns
  9 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear

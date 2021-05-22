@@ -32,3 +32,6 @@ subject to con12 : - (x1^2 - x2^2) + x14 =0;
 
 option auxfiles rc;
 write gbearing; 
+option solver ibexopt;
+solve;
+

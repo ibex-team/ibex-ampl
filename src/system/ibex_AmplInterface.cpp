@@ -1,11 +1,12 @@
 //============================================================================
 //                                  I B E X
-// File        : ibex_AmplInterface.cpp Adapted from CouenneAmplInterface
+// File        : ibex_AmplInterface.cpp
+//              Adapted from CouenneAmplInterface
 //				by Pietro Belotti, Leo Liberti and Sonia Caffieri
 // Author      : Jordan Ninin
 // License     : See the LICENSE file
 // Created     : Nov 5, 2013
-// Last Update : Nov 5, 2013
+// Last Update : June 1, 2020
 //============================================================================
 
 #include "ibex_AmplInterface.h"
@@ -39,18 +40,19 @@
 
 
 
-// The different option of IBEXOPT in Ampl
-double ibex_rel_eps_f=0, ibex_abs_eps_f=0, ibex_initial_loup=INFINITY, ibex_timeout=0, ibex_eps_h=0;
-int ibex_trace2=0, ibex_random_seed=1, ibex_objno=1, ibex_simpl_level=1;
-int	ibex_rigor=0, ibex_kkt=0;
+// The options of IbexOpt available in AMPL
+static double ibex_rel_eps_f=-12345, ibex_abs_eps_f=-12345, ibex_initial_loup=-12345, ibex_timeout=-12345, ibex_eps_h=-12345;
+static int ibex_trace2=-12345, ibex_random_seed=-12345, ibex_objno=-12345, ibex_simpl_level=-12345;
+static int	ibex_rigor=-12345, ibex_kkt=-12345, ibex_inHC4=-12345;
 
 static
 keyword keywds[] = { // must be alphabetical order
 		KW(const_cast<char*>("abs_eps_f"), D_val, &ibex_abs_eps_f, const_cast<char*>("Absolute precision on the objective function. Default: 1.e-7. ")),
 		KW(const_cast<char*>("eps_h"), D_val, &ibex_eps_h, const_cast<char*>("Relaxation value of the equality constraints. Default: 1.e-8. ")),
+		KW(const_cast<char*>("inHC4"), I_val, &ibex_inHC4, const_cast<char*>("If true, feasibility is also tried with LoupFinderInHC4. Default: 1. ")),
+		KW(const_cast<char*>("init_obj_value"), D_val, &ibex_initial_loup, const_cast<char*>("Initialization of the upper bound with a known value. Default: +infinity. ")),
 		KW(const_cast<char*>("kkt"), I_val, &ibex_kkt, const_cast<char*>("Activate KKT contractor. Default: 0. ")),
-		KW(const_cast<char*>("obj_init_bound"), D_val, &ibex_initial_loup, const_cast<char*>("Initialization of the upper bound with a known value. Default: +infinity. ")),
-		KW(const_cast<char*>("obj_num"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
+		KW(const_cast<char*>("obj_numb"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
 		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 1. ")),
 		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective. Default value is 1e-3. ")),
 		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: 0. ")),
@@ -84,20 +86,23 @@ namespace ibex {
 //const double AmplInterface::default_max_bound= 1.e20;
 
 
-AmplOption::AmplOption():
+
+AmplInterface::AmplInterface(std::string nlfile) :
+		asl(NULL),
+		_nlfile(nlfile),
+		_x(NULL),
 		abs_eps_f(OptimizerConfig::default_abs_eps_f),
 		rel_eps_f(OptimizerConfig::default_rel_eps_f),
 		eps_h(ExtendedSystem::default_eps_h),
 		timeout(OptimizerConfig::default_timeout),
 		random_seed(DefaultOptimizerConfig::default_random_seed),
-		simpl_level(ExprNode::default_simpl_level),
-		initial_loup(POS_INFINITY),
-		rigor(DefaultOptimizerConfig::default_rigor),
-		kkt(false),
-		objno(1),
-		trace(OptimizerConfig::default_trace) {}
-
-AmplInterface::AmplInterface(std::string nlfile) : asl(NULL), _nlfile(nlfile), _x(NULL), option(){
+		init_obj_value(POS_INFINITY),
+		rigor(-1),
+		kkt(-1),
+		inHC4(-1),
+		obj_numb(1),
+		//trace(OptimizerConfig::default_trace)
+		trace (1) {
 
 	size_t i=0;
 	while (i<N_OPS) {
@@ -109,12 +114,16 @@ AmplInterface::AmplInterface(std::string nlfile) : asl(NULL), _nlfile(nlfile), _
 		ibex_error("Fail to read the ampl file.\n");
 	}
 
-	if (!readnl()) {
-		ibex_error("Fail to read the nl file.\n");
-	}
+
 	if (!readoption()) {
 		ibex_error("Fail to read the option.\n");
 	}
+
+
+	if (!readnl()) {
+		ibex_error("Fail to read the nl file.\n");
+	}
+
 }
 
 AmplInterface::~AmplInterface() {
@@ -131,7 +140,7 @@ AmplInterface::~AmplInterface() {
 
 bool AmplInterface::writeSolution(Optimizer& o) {
 	std::stringstream message;
-	message << "IBEXopt  "<< _IBEX_RELEASE_ << " finish : ";
+	message << "IbexOpt "<< _IBEX_RELEASE_ << " finish : ";
 	Optimizer::Status status =o.get_status();
 	switch(status) {
 		case Optimizer::SUCCESS:
@@ -139,7 +148,7 @@ bool AmplInterface::writeSolution(Optimizer& o) {
 			solve_result_num=0;
 			break;
 		case Optimizer::INFEASIBLE:
-			message << " INFEASIBLE PORBLEM. \n No feasible point exist less than obj_init_bound. In particular, the function returns INFEASIBLE if the initial bound \"obj_init_bound\" is LESS than the true minimum (this case is only possible if obj_abs_prec and obj_rel_prec are 0). In the latter case, there may exist feasible points." ;
+			message << " INFEASIBLE PROBLEM. \n No feasible point exist less than obj_init_bound. In particular, the function returns INFEASIBLE if the initial bound \"obj_init_bound\" is LESS than the true minimum (this case is only possible if obj_abs_prec and obj_rel_prec are 0). In the latter case, there may exist feasible points." ;
 			solve_result_num=200;
 			break;
 		case Optimizer::NO_FEASIBLE_FOUND:
@@ -213,47 +222,53 @@ bool AmplInterface::readASLfg() {
 // Reads the solver option from the .nl file through the ASL methods
 bool AmplInterface::readoption() {
 
-	if (ibex_abs_eps_f!=0) {
-		option.abs_eps_f = ibex_abs_eps_f;
+	if (ibex_abs_eps_f>0) {
+		set_abs_eps_f(ibex_abs_eps_f);
 	}
-	if (ibex_rel_eps_f!=0) {
-		option.rel_eps_f = ibex_rel_eps_f;
-	}
-
-	if (ibex_eps_h!=0) {
-		option.eps_h = ibex_eps_h;
+	if (ibex_rel_eps_f>0) {
+		set_rel_eps_f ( ibex_rel_eps_f);
 	}
 
-	if (ibex_timeout!=0) {
-		option.timeout = ibex_timeout;
+	if (ibex_eps_h>0) {
+		set_eps_h (ibex_eps_h);
 	}
 
-	if (ibex_random_seed!=1) {
-		option.random_seed = ibex_random_seed;
+	if (ibex_timeout>0) {
+		set_timeout ( ibex_timeout);
 	}
 
-	if (ibex_simpl_level!=1) {
-		option.simpl_level = ibex_simpl_level;
+	if (ibex_random_seed!=-12345) {
+		set_random_seed ( ibex_random_seed);
 	}
 
-	if (ibex_initial_loup < POS_INFINITY) {
-		option.initial_loup = ibex_initial_loup;
+	if (ibex_simpl_level>=0 && ibex_simpl_level<=3) {
+		set_simplification_level ( ibex_simpl_level);
 	}
 
-	if (ibex_rigor!=0) {
-		option.rigor = true;
+	if (ibex_initial_loup !=-12345) {
+		set_init_obj_value ( ibex_initial_loup);
+	} else {
+		set_init_obj_value ( POS_INFINITY );
 	}
 
-	if (ibex_kkt!=0) {
-		option.kkt = true;
+	if (ibex_rigor>=0) {
+		set_rigor(ibex_rigor==1);
 	}
 
-	if (ibex_objno!=1) {
-		option.objno = ibex_objno;
+	if (ibex_inHC4>=0) {
+		set_inHC4(ibex_inHC4==1);
 	}
 
-	if (ibex_trace2!=0) {
-		option.trace = ibex_trace2;
+	if (ibex_kkt>=0) {
+		set_kkt(ibex_kkt==1);
+	}
+
+	if (ibex_objno>=1) {
+		set_obj_numb(ibex_objno);
+	}
+
+	if (ibex_trace2!=-12345) {
+		set_trace(ibex_trace2);
 	}
 
 	return true;
@@ -266,6 +281,7 @@ bool AmplInterface::readnl() {
 
 	// the variable /////////////////////////////////////////////////////////////
 	// TODO only continuous variables for the moment
+	// TODO get the x0 (see ((expr_v *) e) -> v )
 
 	_x= new const ExprSymbol*[n_var];
 	for (int i =0; i< n_var; i++) {
@@ -307,8 +323,9 @@ bool AmplInterface::readnl() {
 		//if (n_obj>1) {ibex_error("Error AmplInterface: too much objective function in the ampl model."); return false;}
 
 		//for (int i = 0; i < n_obj; i++) {
-		if (n_obj>0 && ibex_objno>0) {
-			int i = ibex_objno -1 ;
+		// Select the objective function
+		if (n_obj>0 && get_obj_numb()>0) {
+			int i = get_obj_numb() -1 ;
 			///////////////////////////////////////////////////
 			//  the nonlinear part
 			const ExprNode *body = &(nl2expr ((OBJ_DE [i]).e));
@@ -597,23 +614,23 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 	case OP_acos:  return acos(nl2expr(e -> L.e));
 	case OP_asin:  return asin(nl2expr(e -> L.e));
 	case OP_atan:  return atan(nl2expr(e -> L.e));
-	//case OP_asinh: notimpl ("asinh");
-	//case OP_acosh: notimpl ("acosh");
-	//case OP_atanh: notimpl ("atanh");
+	case OP_asinh: return asinh(nl2expr(e -> L.e));
+	case OP_acosh: return acosh(nl2expr(e -> L.e));
+	case OP_atanh: return atanh(nl2expr(e -> L.e));
 	case OP_atan2: return atan2(nl2expr(e -> L.e), nl2expr(e -> R.e));
 	//case OPintDIV: notimpl ("intdiv");
 	//case OPprecision: notimpl ("precision");
 	//case OPround:  notimpl ("round");
 	//case OPtrunc:  notimpl ("trunc");
-	//case FLOOR:   notimpl ("floor");
-	//case CEIL:    notimpl ("ceil");
+	case FLOOR:   return floor(nl2expr(e -> L.e));
+	case CEIL:    return ceil(nl2expr(e -> L.e));
 	//case OPFUNCALL: notimpl ("function call");
 	//case OPPLTERM:  notimpl ("plterm");
 	//case OPIFSYM:   notimpl ("ifsym");
 	//case OPHOL:     notimpl ("hol");
 	//case OPREM:   notimpl ("remainder");
 	//case OPLESS:  notimpl ("less");
-	//case OPIFnl:  // TODO return (chi(nl2expr(????))) BoolInterval??
+	//case OPIFnl:  // TODO return (chi(nl2expr(????))) perhaps need BoolInterval??
 	                // see ASL/solvers/rops.c, see f_OPIFnl and  expr_if
 	case OPVARVAL:  {
 		int j = ((expr_v *) e) -> a;
@@ -636,7 +653,6 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 					body = var_data[k];
 				}
 				else {
-
 					// Constract the common expression
 					j = k - n_var;
 					if( j < ncom0 ) 	{
@@ -658,7 +674,8 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 									} else if (coeff != 0) {
 										body = &(coeff * (*(_x[index])));
 									}
-								} else {
+								}
+								else {
 									coeff = (L[i]).fac;
 									index = ((uintptr_t) (L[i].v.rp) - (uintptr_t) VAR_E) / sizeof (expr_v);
 									if (coeff==1) {
@@ -691,7 +708,8 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 									} else if (coeff != 0) {
 										body = &(coeff * (*(_x[index])));
 									}
-								} else {
+								}
+								else {
 									coeff = (L[i]).fac;
 									index = ((uintptr_t) (L[i].v.rp) - (uintptr_t) VAR_E) / sizeof (expr_v);
 									if (coeff==1) {
@@ -711,7 +729,8 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 				}
 				return *body;
 
-			} else {
+			}
+			else {
 				ibex_error("Error AmplInterface: unknown defined variable \n");
 				throw -1;
 			}

@@ -38,6 +38,8 @@ public:
 		CPPUNIT_TEST(variable3);
 		CPPUNIT_TEST(I5);
 		CPPUNIT_TEST(bearing);
+		CPPUNIT_TEST(option1);
+		CPPUNIT_TEST(option2);
 
 	CPPUNIT_TEST_SUITE_END();
 
@@ -51,6 +53,8 @@ public:
 	void variable3();
 	void I5();
 	void bearing();
+	void option1();
+	void option2();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestAmpl);

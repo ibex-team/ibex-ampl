@@ -13,6 +13,7 @@
 #include "ibex_AmplInterface.h"
 #include "ibex_ExtendedSystem.h"
 #include "ibex_NormalizedSystem.h"
+#include "ibex_DefaultOptimizerConfig.h"
 
 #include <sstream>
 
@@ -20,76 +21,11 @@ using namespace std;
 
 namespace ibex {
 
-//static System* sysex1() {
-//	SystemFactory fac;
-//	Variable x(3,"x");
-//	Variable A(3,3,"A");
-//	Variable y("y");
-//
-//	fac.add_var(x);
-//	fac.add_var(A);
-//	fac.add_var(y,Interval(-1,1));
-//	fac.add_goal(y-cos(x[1]));
-//	IntervalVector a(3,0);
-//	fac.add_ctr(A*x=a);
-//	fac.add_ctr(y>=x[0]);
-//
-//	return new System(fac);
-//}
-
-static System* ampl_sysex1() {
-	AmplInterface interface(SRCDIR_TESTS "/ex_ampl/ex1.nl");
-	return new System(interface);
-}
-
-//static System* sysex2() {
-//	SystemFactory fac;
-//	Variable x(3,"x");
-//	Variable y("y");
-//
-//	fac.add_var(x);
-//	fac.add_var(y);
-//	fac.add_goal(y-cos(x[1]));
-//	IntervalVector a(3,0);
-//	fac.add_ctr(x[0]+x[1]>=0);
-//	fac.add_ctr(x[1]+x[2]<=y);
-//	fac.add_ctr(y>=x[0]);
-//
-//	return new System(fac);
-//}
-
-
-static System* ampl_sysex2() {
-	AmplInterface interface(SRCDIR_TESTS "/ex_ampl/ex2.nl");
-	return new System(interface);
-}
-
-
-//static System* sysex3() {
-//	SystemFactory fac;
-//	Variable x("x");
-//	Variable y("y");
-//
-//	fac.add_var(x);
-//	fac.add_var(y);
-//	fac.add_ctr(x+y=Interval(-1,1));
-//	fac.add_ctr(x-y<=1);
-//	fac.add_ctr(x-y>=-1);
-//	fac.add_ctr(x=y);
-//
-//	return new System(fac);
-//}
-
-
-static System* ampl_sysex3() {
-	AmplInterface interface(SRCDIR_TESTS "/ex_ampl/ex3.nl");
-	return new System(interface);
-}
-
 
 void TestAmpl::factory01() {
 
-	System& sys(*ampl_sysex1());
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex1.nl");
+	System sys(inter);
 	CPPUNIT_ASSERT(sys.nb_ctr==4);
 	CPPUNIT_ASSERT(sys.nb_var==13);
 	CPPUNIT_ASSERT(sys.args.size()==13);
@@ -114,12 +50,12 @@ void TestAmpl::factory01() {
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((-x[0])+y)"));
 	CPPUNIT_ASSERT(sys.ops[3]==GEQ);
 
-	delete &sys;
 }
 
 
 void TestAmpl::factory02() {
-	System& sys(*ampl_sysex3());
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex3.nl");
+	System sys(inter);
 
 	CPPUNIT_ASSERT(sys.nb_ctr==5);
 	CPPUNIT_ASSERT(sys.nb_var==2);
@@ -134,17 +70,14 @@ void TestAmpl::factory02() {
 	CPPUNIT_ASSERT(sys.ctrs[0].op==LEQ);
 	CPPUNIT_ASSERT(sys.ctrs[1].op==GEQ);
 
-	delete &sys;
 
 }
 
 
-
-
 void TestAmpl::extend() {
-	System& _sys(*ampl_sysex2());
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex2.nl");
+	System _sys(inter);
 	ExtendedSystem sys(_sys);
-	delete &_sys;
 
 	CPPUNIT_ASSERT(sys.nb_ctr==4);
 	CPPUNIT_ASSERT(sys.nb_var==5);
@@ -172,9 +105,10 @@ void TestAmpl::extend() {
 
 
 void TestAmpl::normalize() {
-	System& _sys(*ampl_sysex3());
+
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex3.nl");
+	System _sys(inter);
 	NormalizedSystem sys(_sys,0.5);
-	delete &_sys;
 
 	CPPUNIT_ASSERT(sys.nb_ctr==6);
 	CPPUNIT_ASSERT(sys.nb_var==2);
@@ -328,7 +262,41 @@ void TestAmpl::bearing() {
 
 }
 
+void TestAmpl::option1() {
 
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex1.nl" );
+
+	CPPUNIT_ASSERT(inter.get_abs_eps_f()==OptimizerConfig::default_abs_eps_f);
+	CPPUNIT_ASSERT(inter.get_rel_eps_f()==OptimizerConfig::default_rel_eps_f );
+	CPPUNIT_ASSERT(inter.get_eps_h()==ExtendedSystem::default_eps_h );
+	CPPUNIT_ASSERT(inter.get_timeout()==OptimizerConfig::default_timeout );
+	CPPUNIT_ASSERT(inter.get_random_seed()==DefaultOptimizerConfig::default_random_seed );
+	CPPUNIT_ASSERT(inter.get_init_obj_value()==POS_INFINITY);
+	CPPUNIT_ASSERT(inter.get_rigor()==-1 );
+	CPPUNIT_ASSERT(inter.get_kkt()==-1 );
+	CPPUNIT_ASSERT(inter.get_inHC4()==-1 );
+	CPPUNIT_ASSERT(inter.get_obj_numb()==1 );
+	CPPUNIT_ASSERT(inter.get_trace()==1 );
+
+}
+
+
+void TestAmpl::option2() {
+
+//	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/option2.nl" );
+//	std::cout << inter.option.abs_eps_f << std::endl;
+//	CPPUNIT_ASSERT(inter.option.abs_eps_f==1.e-1);
+//	CPPUNIT_ASSERT(inter.option.rel_eps_f==1.e-2 );
+//	CPPUNIT_ASSERT(inter.option.eps_h==10);
+//	CPPUNIT_ASSERT(inter.option.timeout==1000 );
+//	CPPUNIT_ASSERT(inter.option.random_seed==20);
+//	CPPUNIT_ASSERT(inter.option.simpl_level==2 );
+//	CPPUNIT_ASSERT(inter.option.initial_loup==30);
+//	CPPUNIT_ASSERT(inter.option.rigor==true );
+//	CPPUNIT_ASSERT(inter.option.kkt==true );
+//	CPPUNIT_ASSERT(inter.option.objno==2 );
+//	CPPUNIT_ASSERT(inter.option.trace==3 );
+}
 
 
 } // end namespace
