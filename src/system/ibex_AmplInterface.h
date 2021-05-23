@@ -11,11 +11,14 @@
 #ifndef __IBEX_AMPL_INTERFACE_H__
 #define __IBEX_AMPL_INTERFACE_H__
 
+#include "ibex.h"
+//#include "ibex/ibex_SystemFactory.h"
+//#include "ibex/ibex_Expr.h"
+//#include "ibex/ibex_Interval.h"
+//#include "ibex/ibex_Setting.h"
+//#include "ibex/ibex_Optimizer.h"
+//#include "ibex/ibex_OptimizerConfig.h"
 
-#include "ibex/ibex_SystemFactory.h"
-#include "ibex/ibex_Expr.h"
-#include "ibex/ibex_Interval.h"
-#include "ibex/ibex_Setting.h"
 #include <string>
 
 #ifdef __GNUC__
@@ -33,8 +36,6 @@
 #endif // (_MSC_VER >= 1600)
 #endif
 
-#include "ibex/ibex_Optimizer.h"
-#include "ibex/ibex_OptimizerConfig.h"
 
 struct ASL;
 struct expr;

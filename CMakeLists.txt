@@ -13,6 +13,16 @@ set (CMAKE_INSTALL_CONFIGCMAKE "share/ibex_ampl/cmake")
 # Interval and linear programming names and versions are available
 message (STATUS "Ibex was compiled with interval library "
                 "${IBEX_INTERVAL_LIB_NAME} ${IBEX_INTERVAL_LIB_VERSION}")
+                
+if (IBEX_INTERVAL_LIB_NAME STREQUAL "Gaol")
+	if (${IBEX_INTERVAL_LIB_VERSION} STRLESS "4.2.2")
+		message (FATAL_ERROR 
+			"If ibex is compiled with GAOL, it is necessary to "
+			"install a version of GAOL at least 4.2.2. "
+			"Otherwise, please reinstall Ibex using the Filib library: "
+			" \t cmake -DINTERVAL_LIB=filib " )
+	endif()
+endif()
 
 if (IBEX_LP_LIB_NAME) # Was Ibex compiled with a linear programming library ?
   message (STATUS "Ibex was compiled with Linear Programming library "
@@ -27,15 +37,16 @@ endif ()
 set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake.utils")
 list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
 
-list(APPEND CMAKE_PREFIX_PATH "${ASL_DIR}")
 ################################################################################
 # Find ampl-asl
 ################################################################################
+list(APPEND CMAKE_PREFIX_PATH "${ASL_DIR}")
 find_package (ampl-asl QUIET)
 if (ampl-asl_FOUND)
-	message (STATUS "Found Ampl Solver Librairy")
+	message (STATUS "Found Ampl Solver Librairy (ASL)")
 else()
-  message (STATUS "Will install and use library ASL from 3rd/ subdirectory")
+  message (STATUS "Not found Ampl Solver Librairy (ASL)")
+  message (STATUS "ASL: We will install and use library ASL from 3rd/ subdirectory")
   include (ibex-install-3rd)
 
   #set (ASL_VERSION "1.17.6")
@@ -58,8 +69,8 @@ else()
   ### Configure
   message (STATUS "${ASL_NAME}: configure")
   # Original values will be restored at the end of this file
-  set (CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR_3RD})
-  set (CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR_3RD})
+  #set (CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR_3RD})
+  #set (CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR_3RD})
   add_subdirectory (${wdir} ${wdir}-build)
   message (STATUS "${ASL_NAME}: configure - done")
 endif ()

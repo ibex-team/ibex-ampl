@@ -7,6 +7,7 @@ list (APPEND SRC ${CMAKE_CURRENT_SOURCE_DIR}/system/ibex_AmplInterface.cpp
 add_library (ibex-ampl ${SRC})
 target_include_directories (ibex-ampl PUBLIC
                   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/system>"
+                  "$<BUILD_INTERFACE:${ASL_DIR}/include/asl>"
                   "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/ibex-ampl>")
 target_link_libraries (ibex-ampl PUBLIC Ibex::ibex asl)
 

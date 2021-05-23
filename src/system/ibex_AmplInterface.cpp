@@ -10,21 +10,22 @@
 //============================================================================
 
 #include "ibex_AmplInterface.h"
-#include "ibex/ibex_Exception.h"
-#include "ibex/ibex_ExtendedSystem.h"
-#include <sstream>
+#include "ibex.h"
+//#include "ibex/ibex_Exception.h"
+//#include "ibex/ibex_ExtendedSystem.h"
+//#include "ibex/ibex_DefaultOptimizerConfig.h"
 
 
-#include "ibex/ibex_DefaultOptimizerConfig.h"
-
-#include "asl/asl.h"
-#include "asl/nlp.h"
-#include "asl/getstub.h"
-#include "asl/opcode.hd"
-#include "asl/r_opn.hd" /* for N_OPS */
+#include "asl.h"
+#include "nlp.h"
+#include "getstub.h"
+#include "opcode.hd"
+#include "r_opn.hd" /* for N_OPS */
 //#include <string.h>
 //#include <math.h>
+
 #include <stdint.h>
+#include <sstream>
 
 
 #ifndef Intcast

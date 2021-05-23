@@ -334,20 +334,6 @@ int main(int argc, char** argv) {
 			cout << "*******************************************************" << endl << endl;
 		}
 
-	// TEST
-
-		std::cout << " TEST config AMPL:"<< std::endl;
-		std::cout << ampl->get_abs_eps_f() << std::endl;
-		std::cout << ampl->get_rel_eps_f() << std::endl;
-		std::cout << ampl->get_eps_h() << std::endl;
-		std::cout << ampl->get_timeout() << std::endl;
-		std::cout << ampl->get_random_seed() << std::endl;
-		std::cout << ampl->get_init_obj_value() << std::endl;
-		std::cout << ampl->get_rigor() << std::endl;
-		std::cout << ampl->get_kkt() << std::endl;
-		std::cout << ampl->get_obj_numb() << std::endl;
-		std::cout << ampl->get_trace() << std::endl;
-
 
 
 		// Build the default optimizer
