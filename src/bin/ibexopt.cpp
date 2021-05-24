@@ -335,7 +335,6 @@ int main(int argc, char** argv) {
 		}
 
 
-
 		// Build the default optimizer
 		Optimizer o(config);
 
