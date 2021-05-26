@@ -17,8 +17,9 @@ Here, an example of some path option:
 * cmake .. -DCMAKE_INSTALL_PREFIX=../../OUT -DCMAKE_PREFIX_PATH=/dir-where-ibex-is-installed/ 
 
 
-If the ASL library is already installed, you can give the path to cmake with this option: 
-*    -DASL_DIR=/dir-where-ASL-is-installed/
+If the ASL library is already installed, you can give the path to cmake:
+* by setting the environment variable `ASL_DIR` to the correct path
+* or by using the cmake command-line option `-DASL_DIR=<path/to/ASL>`
 
 Otherwise ASL will be automatically installed from the archive of the folder "ibex-ampl/3rd". 
 

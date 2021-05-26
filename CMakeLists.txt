@@ -5,6 +5,11 @@ set (IBEX_AMPL_DESCRIPTION "Plugin to interface ibex and AMPL")
 set (IBEX_AMPL_URL "https://github.com/ibex-team/ibex-ampl/")
 set (IBEX_MIN_VERSION_REQ 2.8.9.1)
 
+# If IBEX_DIR was given on the command-line and not in the environment, set it
+# as an environment variable. Enable the usage of 'cmake -DIBEX_DIR=<path> ...'
+if (NOT DEFINED ENV{IBEX_DIR} AND DEFINED IBEX_DIR)
+  set (ENV{IBEX_DIR} "${IBEX_DIR}")
+endif ()
 find_package (IBEX ${IBEX_MIN_VERSION_REQ} REQUIRED)
 message (STATUS "Found Ibex version ${IBEX_VERSION}")
 ibex_init_common () # Ibex should have installed this function
@@ -13,12 +18,12 @@ set (CMAKE_INSTALL_CONFIGCMAKE "share/ibex_ampl/cmake")
 # Interval and linear programming names and versions are available
 message (STATUS "Ibex was compiled with interval library "
                 "${IBEX_INTERVAL_LIB_NAME} ${IBEX_INTERVAL_LIB_VERSION}")
-                
+
 if (IBEX_INTERVAL_LIB_NAME STREQUAL "Gaol")
-	if (${IBEX_INTERVAL_LIB_VERSION} STRLESS "4.2.2")
+	if (${IBEX_INTERVAL_LIB_VERSION} STRLESS "4.2.3")
 		message (FATAL_ERROR 
 			"If ibex is compiled with GAOL, it is necessary to "
-			"install a version of GAOL at least 4.2.2. "
+			"install a version of GAOL at least 4.2.3. "
 			"Otherwise, please reinstall Ibex using the Filib library: "
 			" \t cmake -DINTERVAL_LIB=filib " )
 	endif()
@@ -38,12 +43,19 @@ set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake.utils")
 list (APPEND CMAKE_MODULE_PATH "${MODULE_DIR}")
 
 ################################################################################
-# Find ampl-asl
+# Find ampl-asl (and install it if not found)
 ################################################################################
-list(APPEND CMAKE_PREFIX_PATH "${ASL_DIR}")
-find_package (ampl-asl QUIET)
-if (ampl-asl_FOUND)
-	message (STATUS "Found Ampl Solver Librairy (ASL)")
+if (NOT DEFINED ENV{ASL_DIR} AND DEFINED ASL_DIR)
+  set (ENV{ASL_DIR} "${ASL_DIR}")
+endif ()
+find_package (ASL NAMES ampl-asl QUIET)
+if (ASL_FOUND)
+  message (STATUS "Found Ampl Solver Librairy (ASL)")
+  get_property (_incdirs TARGET asl PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+  foreach (_incdir ${_incdirs})
+    set_property (TARGET asl APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+                                            "${_incdir}/asl")
+  endforeach ()
 else()
   message (STATUS "Not found Ampl Solver Librairy (ASL)")
   message (STATUS "ASL: We will install and use library ASL from 3rd/ subdirectory")
@@ -66,18 +78,18 @@ else()
                          LOGBASENAME "${logdir}/extract"
                          STATUS_PREFIX "${ASL_NAME}: ")
 
+  ### Apply patch
+  patch ("${ASL_NAME}: " "${CMAKE_CURRENT_SOURCE_DIR}/3rd" "${wdir}"
+         "${logdir}" "${asl_basename}.CMakeLists.patch")
+
   ### Configure
   message (STATUS "${ASL_NAME}: configure")
-  # Original values will be restored at the end of this file
-  #set (CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR_3RD})
-  #set (CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR_3RD})
   add_subdirectory (${wdir} ${wdir}-build)
   message (STATUS "${ASL_NAME}: configure - done")
 endif ()
 
 ################################################################################
-# Generate pkg-config file and install it (can be removed if no library is
-# installed)
+# Generate pkg-config file and install it
 ################################################################################
 configure_file ("ibex-ampl.pc.in" "ibex-ampl.pc" @ONLY)
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/ibex-ampl.pc
@@ -89,7 +101,7 @@ install (FILES ${CMAKE_CURRENT_BINARY_DIR}/ibex-ampl.pc
 add_subdirectory (src)
 
 ################################################################################
-# Generate CMake config file (can be removed if no library is installed)
+# Generate CMake config file
 ################################################################################
 set (IBEX_AMPL_TARGETS_CONFIG_FILE "ibex_ampl-targets.cmake")
 install (EXPORT AmplExport FILE ${IBEX_AMPL_TARGETS_CONFIG_FILE}
