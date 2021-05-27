@@ -12,12 +12,12 @@ or, if $solver is not already ibexopt,
     option solver ibexopt;
     solve;
 
-The argument -AMPL causes minos to emit a one-line banner; when
-$solver has its default value (minos), AMPL's solve command invokes
+The argument -AMPL causes IbexOpt to emit a one-line banner; when
+$solver has its default value (ibexopt), AMPL's solve command invokes
 
     ibexopt stub -AMPL
 
-If a stub is present, minos tries to write the computed solution to
+If a stub is present, IbexOpt tries to write the computed solution to
 stub.sol
 
 For details not given here, see the IBEX documentation:
