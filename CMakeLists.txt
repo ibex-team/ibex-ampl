@@ -50,7 +50,7 @@ if (NOT DEFINED ENV{ASL_DIR} AND DEFINED ASL_DIR)
 endif ()
 find_package (ASL NAMES ampl-asl QUIET)
 if (ASL_FOUND)
-  message (STATUS "Found Ampl Solver Librairy (ASL)")
+  message (STATUS "Found Ampl Solver Library (ASL)")
   get_property (_incdirs TARGET asl PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
   foreach (_incdir ${_incdirs})
     set_property (TARGET asl APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
