@@ -144,36 +144,84 @@ bool AmplInterface::writeSolution(Optimizer& o) {
 	message << "IbexOpt "<< _IBEX_RELEASE_ << " finish : ";
 	Optimizer::Status status =o.get_status();
 	switch(status) {
-		case Optimizer::SUCCESS:
-			message << " OPTIMIZATION SUCCESS! \n The global minimum (with respect to the precision required) has been found. In particular, at least one feasible point has been found, less than obj_init_bound, and in the time limit." ;
+		case Optimizer::SUCCESS: {
+			message << " OPTIMIZATION SUCCESS! \n "
+					<< "The global minimum has been found, with respect to \n"
+					<< "the precision required. In particular, at least \n"
+					<< "one feasible point has been found, less than \"init_obj_value\", \n"
+					<< "and in the time limit.\n" ;
 			solve_result_num=0;
-			break;
-		case Optimizer::INFEASIBLE:
-			message << " INFEASIBLE PROBLEM. \n No feasible point exist less than obj_init_bound. In particular, the function returns INFEASIBLE if the initial bound \"obj_init_bound\" is LESS than the true minimum (this case is only possible if obj_abs_prec and obj_rel_prec are 0). In the latter case, there may exist feasible points." ;
-			solve_result_num=200;
-			break;
-		case Optimizer::NO_FEASIBLE_FOUND:
-			message << " NO FEASIBLE POINT FOUND. \n No feasible point could be found less than obj_init_bound. Contrary to INFEASIBLE, infeasibility is not proven here. Warning: this return value is sensitive to the abs_eps_f and rel_eps_f parameters. The upperbounding makes the optimizer only looking for points less than min{ (1-rel_eps_f)*obj_init_bound, obj_init_bound - abs_eps_f }.";
-			solve_result_num=201;
-			break;
-		case Optimizer::UNBOUNDED_OBJ:
-			message << " UNBOUNDED OBJECTIVE FONCTION. \n The objective function seems unbounded (tends to -oo).";
-			solve_result_num=300;
-			break;
-		case Optimizer::TIME_OUT:
-			message << " time limit " << o.timeout << "s. reached";
-			solve_result_num=400;
-			break;
-		case Optimizer::UNREACHED_PREC:
-			message << " UNREACHED PRECISION. \n The search is over but the resulting interval [uplo,loup] does not satisfy the precision requirements. There are several possible reasons: the goal function may be too pessimistic or the constraints function may be too pessimistic with respect to the precision requirement (which can be too stringent). This results in tiny boxes that can neither be contracted nor used as new loup candidates. Finally, the eps_x parameter may be too large." ;
-			solve_result_num=402;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
 			break;
 		}
+		case Optimizer::INFEASIBLE:{
+			message << " INFEASIBLE PROBLEM. \n "
+					<<"No feasible point exist less than \"init_obj_value\". \n"
+					<<"In particular, the function returns INFEASIBLE \n"
+					<<"if the initial bound \"init_obj_value\" is LESS than \n"
+					<<"the true minimum (this case is only possible \n"
+					<<"if \"rel_eps_f\" and \"abs_eps_f\" are 0). \n"
+					<<"In the latter case, there may exist feasible points." ;
+			solve_result_num=200;
 
-	std::string tmp = message.str();
-	Vector sol = o.get_loup_point().mid();
-	write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			std::string tmp = message.str();
+			write_sol(tmp.c_str(), NULL, NULL, NULL);
+			break;
+		}
+		case Optimizer::NO_FEASIBLE_FOUND:{
+			message << " NO FEASIBLE POINT FOUND. \n "
+					<<"No feasible point could be found less than \"init_obj_value\".\n"
+					<<" Contrary to INFEASIBLE, infeasibility is not proven here. \n"
+					<<"Warning: this return value is sensitive to the \"abs_eps_f\" \n"
+					<<" and \"rel_eps_f\" parameters. The upper bounding makes \n"
+					<<" the optimizer only looking for points less than\n"
+					<<" min{ (1-rel_eps_f)*init_obj_value, init_obj_value - abs_eps_f }.";
+			solve_result_num=201;
 
+			std::string tmp = message.str();
+			write_sol(tmp.c_str(), NULL, NULL, NULL);
+			break;
+		}
+		case Optimizer::UNBOUNDED_OBJ:{
+			message << " UNBOUNDED OBJECTIVE FONCTION. \n "
+					<<"The objective function seems unbounded (tends to -oo).";
+			solve_result_num=300;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		case Optimizer::TIME_OUT:{
+			message << " time limit " << o.timeout << "s. reached";
+			solve_result_num=400;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		case Optimizer::UNREACHED_PREC: {
+			message << " UNREACHED PRECISION. \n "
+					<<"The search is over but the resulting interval [uplo,loup]\n"
+					<<"does not satisfy the precision requirements. \n"
+					<<"There are several possible reasons: the objective \n"
+					<<"function may be too pessimistic or the constraints function\n"
+					<<"may be too pessimistic with respect to the precision \n"
+					<<"requirement (which can be too stringent). This results in \n"
+					<<"tiny boxes that can neither be contracted nor used as \n"
+					<<"new loup candidates. Finally, the \"eps_x\" parameter may be too large." ;
+			solve_result_num=402;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		}
 	return true;
 }
 
@@ -282,7 +330,7 @@ bool AmplInterface::readnl() {
 
 	// the variable /////////////////////////////////////////////////////////////
 	// TODO only continuous variables for the moment
-	// TODO get the x0 (see ((expr_v *) e) -> v )
+	// TODO get the x0 : see ((expr_v *) e) -> v , havex0 and X0
 
 	_x= new const ExprSymbol*[n_var];
 	for (int i =0; i< n_var; i++) {

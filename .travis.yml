@@ -1,0 +1,89 @@
+language: C
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      env:
+        - INTERVAL_LIB=filib
+        - LP_LIB=none
+        - STATIC_OR_SHARED=--enable-shared
+        - STATIC_OR_SHARED_CMAKE=-DBUILD_SHARED_LIBS=ON
+    - os: linux
+      compiler: gcc
+      env:
+        - INTERVAL_LIB=filib
+        - LP_LIB=soplex
+        - STATIC_OR_SHARED=
+        - STATIC_OR_SHARED_CMAKE=
+    - os: linux
+      compiler: gcc
+      env:
+        - INTERVAL_LIB=direct
+        - LP_LIB=soplex
+        - STATIC_OR_SHARED=
+        - STATIC_OR_SHARED_CMAKE=
+    - os: osx
+      osx_image: xcode11
+      compiler: clang
+      env:
+        - INTERVAL_LIB=filib
+        - LP_LIB=soplex
+        - STATIC_OR_SHARED=
+        - STATIC_OR_SHARED_CMAKE=
+        - CXXFLAGS=-std=c++11
+    - os: osx
+      osx_image: xcode11
+      compiler: clang
+      env:
+        - INTERVAL_LIB=filib
+        - LP_LIB=none
+        - STATIC_OR_SHARED=--enable-shared
+        - STATIC_OR_SHARED_CMAKE=-DBUILD_SHARED_LIBS=ON
+        - CXXFLAGS=-std=c++11
+
+  allow_failures:
+    - os: linux
+      compiler: gcc
+      env:
+        - INTERVAL_LIB=direct
+        - LP_LIB=soplex
+        - STATIC_OR_SHARED=
+        - STATIC_OR_SHARED_CMAKE=
+
+# only works on linux
+addons:
+  apt:
+    packages:
+      - python
+      - flex
+      - bison
+      - libcppunit-dev
+  homebrew:
+    packages:
+    - flex
+    - bison
+    - cppunit
+
+install:
+  - uname -a
+  - git clone https://github.com/ibex-team/ibex-lib.git
+  - cd ibex-lib
+  - mkdir build
+  - cd build
+  - cmake ${STATIC_OR_SHARED_CMAKE} -DINTERVAL_LIB=${INTERVAL_LIB} -DLP_LIB=${LP_LIB} ..
+  - make
+  - cd ../.. 
+  - mkdir build
+  - cd build
+  - cmake ${STATIC_OR_SHARED_CMAKE} 
+  - make
+
+# command to run tests
+# TODO: add nonreg tests
+script:
+  - make check
+  
+
+after_failure:
+  - cat __build__/*.log

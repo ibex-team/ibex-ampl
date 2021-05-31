@@ -8,13 +8,17 @@ Interface of IBEX with AMPL
 
 [https://github.com/ibex-team/ibex-lib](https://github.com/ibex-team/ibex-lib)
 
+* `cmake .. -DINTERVAL_LIB=filib `
+
+
 2) Then build this project with cmake.
 
 Here, an example of some path option:
 
-* mkdir build
-* cd build
-* cmake .. -DCMAKE_INSTALL_PREFIX=../../OUT -DCMAKE_PREFIX_PATH=/dir-where-ibex-is-installed/ 
+* `mkdir build`
+* `cd build`
+* `cmake .. -DCMAKE_INSTALL_PREFIX=<path/where/you/want/to/install> -DCMAKE_PREFIX_PATH=<path/to/ibex> `
+* `make install`
 
 
 If the ASL library is already installed, you can give the path to cmake:

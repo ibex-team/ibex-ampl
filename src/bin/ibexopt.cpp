@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 		System *sys;
 		AmplInterface *ampl;
 
-		cout << "IBEXOPT  "<< _IBEX_RELEASE_ << " is running..."<< endl;
+		cout << "IbexOpt  "<< _IBEX_RELEASE_ << " is running..."<< endl;
 
 		string extension = filename.Get().substr(filename.Get().find_last_of('.')+1);
 		if (extension == "nl" || option_ampl) {
@@ -248,7 +248,8 @@ int main(int argc, char** argv) {
 		}
 
 		if (simpl_level)
-			cout << "  symbolic simpl level:\t" << simpl_level.Get() << "\t" << endl;
+			if (!quiet)
+				cout << "  symbolic simpl level:\t" << simpl_level.Get() << "\t" << endl;
 
 		if (initial_loup) {
 			initial_loup1 = initial_loup.Get();
@@ -376,63 +377,9 @@ int main(int argc, char** argv) {
 
 			//  si l'option -AMPL est présent, ecrire le fichier .sol pour ampl
 
-//			cout << o.get_nb_cells()  <<  " iterations,  objective in [" << o.get_uplo() <<"," << o.get_loup() << "]" << endl;
-
-			Optimizer::Status status =o.get_status();
-			switch(status) {
-				case Optimizer::SUCCESS:
-					cout << " optimization successful!" << std::endl;
-					break;
-				case Optimizer::INFEASIBLE:
-					cout << " infeasible problem" << std::endl;
-					break;
-				case Optimizer::NO_FEASIBLE_FOUND:
-					cout << " no feasible point found (the problem may be infeasible)" << std::endl;
-					break;
-				case Optimizer::UNBOUNDED_OBJ:
-					cout << " possibly unbounded objective (f*=-oo)" << std::endl;
-					break;
-				case Optimizer::TIME_OUT:
-					cout << " time limit " << o.timeout << "s. reached" << std::endl;
-					break;
-				case Optimizer::UNREACHED_PREC:
-					cout << " unreached precision"  << std::endl;
-					break;
-				}
-			// No solution found and optimization stopped with empty buffer
-			// before the required precision is reached => means infeasible problem
-			if (status==Optimizer::INFEASIBLE) {
-				cout << " infeasible problem\n ";
-			} else {
-				double loup = o.get_loup();
-				cout <<  "f*  in [" << o.get_uplo() <<"," << loup << "]" << std::endl;
-				cout <<  "(best bound)" << std::endl;
-
-				double rel_prec=o.get_obj_rel_prec();
-				double abs_prec=o.get_obj_abs_prec();
-
-				cout << " relative precision on f*:\t" << rel_prec;
-				if (rel_prec <= o.rel_eps_f)
-					cout <<  " [passed] ";
-				cout  << std::endl;
-
-				cout <<  " absolute precision on f*:\t" << abs_prec;
-				if (abs_prec <= o.abs_eps_f)
-					cout <<   " [passed] " ;
-				cout << std::endl;
-			}
-
-			cout <<  " cpu time used:\t\t\t" << o.get_time() << "s";
-			if (o.get_data().time()!=o.get_time())
-				cout <<  " [total=" << o.get_data().time() << "]";
-			cout << std::endl;
-			cout <<  " number of cells:\t\t" << o.get_nb_cells();
-			if (o.get_data().nb_cells()!=o.get_nb_cells())
-				cout <<   " [total=" << o.get_data().nb_cells() << "]";
-			cout  << std::endl;
-
-
+			o.report();
 			ampl->writeSolution(o);
+
 			if (ampl) {
 				delete ampl;
 			}
