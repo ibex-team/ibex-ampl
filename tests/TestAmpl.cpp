@@ -236,16 +236,16 @@ void TestAmpl::bearing() {
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==13);
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((-1.42857*(x4*x6))+(10000*x8))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((10*(x7*x9))-(0.00968*(x3*(x1^4-x2^4))))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((143.3076*(x10*x4))+(-10000*x7))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((143.3*(x10*x4))+(-10000*x7))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((3.14159*(x6*(0.001*x9)^3))-(6e-06*((x3*x4)*x13)))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((101000*(x12*x13))-(1.57079*(x6*x14)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((1010*(x12*x13))-(1.57079*(x6*x14)))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((-1096*exp((-3.55*log(x11))))+(56*log(((8.112*x3)+0.8))))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((0.0307*x4^2)-(0.3864*((0.00628*(x1*x9))^2*x6)))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[7].expr(),"((log(x2)-log(x1))+x13)"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[8].expr(),"((x2^2-x1^2)+x14)"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[9].expr(),"(((-0.5*x10)+x11)-560)"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[10].expr(),"(x1-x2)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[11].expr(),"((101000*x12)+(-15707.9635*x14))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[11].expr(),"((1010*x12)+(-15707.9*x14))"));
 
 	CPPUNIT_ASSERT(sys.ops[0]==EQ);
 	CPPUNIT_ASSERT(sys.ops[1]==EQ);

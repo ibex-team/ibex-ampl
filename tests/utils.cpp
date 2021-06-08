@@ -20,7 +20,7 @@ double ERROR = 1e-10;
 
 bool sameExpr(const ExprNode& node, const char* expr) {
 	std::stringstream s;
-	s.precision(15);
+	s.precision(7);
 	s << node;
 	if (strcmp(s.str().c_str(),expr)==0)
 		return true;

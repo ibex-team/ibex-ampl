@@ -93,15 +93,15 @@ AmplInterface::AmplInterface(std::string nlfile) :
 		_nlfile(nlfile),
 		_x(NULL),
 		abs_eps_f(OptimizerConfig::default_abs_eps_f),
-		rel_eps_f(OptimizerConfig::default_rel_eps_f),
 		eps_h(ExtendedSystem::default_eps_h),
-		timeout(OptimizerConfig::default_timeout),
-		random_seed(DefaultOptimizerConfig::default_random_seed),
 		init_obj_value(POS_INFINITY),
-		rigor(-1),
-		kkt(-1),
 		inHC4(-1),
+		kkt(-1),
 		obj_numb(1),
+		random_seed(DefaultOptimizerConfig::default_random_seed),
+		rel_eps_f(OptimizerConfig::default_rel_eps_f),
+		rigor(-1),
+		timeout(OptimizerConfig::default_timeout),
 		//trace(OptimizerConfig::default_trace)
 		trace (1) {
 

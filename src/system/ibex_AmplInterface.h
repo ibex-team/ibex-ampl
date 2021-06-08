@@ -127,13 +127,13 @@ private:
 	/** Initialization of the upper bound with a known value. Default: +infinity. */
 	double init_obj_value;
 
-	/** Activate KKT contractor.
-	 * \see #set_kkt().  */
-	int kkt;
-
 	/** Default inHC4 mode.
 	 * \see #set_inHC4().*/
 	int inHC4;
+
+	/** Activate KKT contractor.
+	 * \see #set_kkt().  */
+	int kkt;
 
 	/** Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1. */
 	int obj_numb;

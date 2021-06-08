@@ -348,15 +348,9 @@ int main(int argc, char** argv) {
 		// Search for the optimum
 		// Get the solutions
 		if (input_file)
-			if (initial_loup)
-				o.optimize(input_file.Get().c_str(), initial_loup.Get());
-			else
-				o.optimize(input_file.Get().c_str());
+			o.optimize(input_file.Get().c_str(), initial_loup1);
 		else
-			if (initial_loup)
-				o.optimize(sys->box, initial_loup.Get());
-			else
-				o.optimize(sys->box);
+			o.optimize(sys->box, initial_loup1);
 
 		if (trace) cout << endl;
 
