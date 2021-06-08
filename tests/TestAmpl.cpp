@@ -136,8 +136,8 @@ void TestAmpl::normalize() {
 
 void TestAmpl::merge() {
 
-	AmplInterface i1(SRCDIR_TESTS "/ex_ampl/bearing.nl");
-	AmplInterface i2(SRCDIR_TESTS "/ex_ampl/I5.nl");
+	AmplInterface i1(SRCDIR_TESTS "/ex_ampl/ex7.nl");
+	AmplInterface i2(SRCDIR_TESTS "/ex_ampl/ex8.nl");
 	System sys1(i1);
 	System sys2(i2);
 	System sys3(sys1,sys2);
@@ -197,22 +197,22 @@ void TestAmpl::variable3() {
 }
 
 void TestAmpl::I5() {
-	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/I5.nl" );
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex8.nl" );
 	System sys(inter);
 
 	CPPUNIT_ASSERT(sys.ctrs.size()==11);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==13);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==13);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((((x3^4*x9^7)+(-0.18324757*((x4*x3)*x9)^3))+x1)-0.25428722)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((((x10^4*x6^7)+(-0.16275449*((x1*x10)*x6)^3))+x2)-0.37842197)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((((x2^4*x10^7)+(-0.16955071*((x1*x2)*x10)^3))+x3)-0.27162577)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((((x1^4*x6^7)+(-0.15585316*((x7*x1)*x6)^3))+x4)-0.19807914)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((((x6^4*x3^7)+(-0.1995092*((x7*x6)*x3)^3))+x5)-0.44166728)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((((x5^4*x10^7)+(-0.18922793*((x8*x5)*x10)^3))+x6)-0.14654113)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((((x5^4*x8^7)+(-0.21180486*((x2*x5)*x8)^3))+x7)-0.42937161)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[7].expr(),"((((x7^4*x6^7)+(-0.17081208*((x1*x7)*x6)^3))+x8)-0.07056438)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[8].expr(),"((((x6^4*x8^7)+(-0.1961274*((x10*x6)*x8)^3))+x9)-0.34504906)"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[9].expr(),"((((x8^4*x1^7)+(-0.21466544*((x4*x8)*x1)^3))+x10)-0.42651102)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((((x3^4*x9^7)+(-0.18324*((x4*x3)*x9)^3))+x1)-0.25428)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((((x10^4*x6^7)+(-0.16275*((x1*x10)*x6)^3))+x2)-0.37842)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((((x2^4*x10^7)+(-0.16955*((x1*x2)*x10)^3))+x3)-0.27162)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((((x1^4*x6^7)+(-0.15585*((x7*x1)*x6)^3))+x4)-0.19807)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((((x6^4*x3^7)+(-0.1995*((x7*x6)*x3)^3))+x5)-0.44166)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((((x5^4*x10^7)+(-0.18922*((x8*x5)*x10)^3))+x6)-0.14654)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((((x5^4*x8^7)+(-0.2118*((x2*x5)*x8)^3))+x7)-0.42937)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[7].expr(),"((((x7^4*x6^7)+(-0.17081*((x1*x7)*x6)^3))+x8)-0.07056)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[8].expr(),"((((x6^4*x8^7)+(-0.19612*((x10*x6)*x8)^3))+x9)-0.34504)"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[9].expr(),"((((x8^4*x1^7)+(-0.21466*((x4*x8)*x1)^3))+x10)-0.42651)"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[10].expr(),"((x11+x12)+x13)"));
 	CPPUNIT_ASSERT(sys.ops[0]==EQ);
 	CPPUNIT_ASSERT(sys.ops[1]==EQ);
@@ -228,19 +228,19 @@ void TestAmpl::I5() {
 }
 
 void TestAmpl::bearing() {
-	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/bearing.nl" );
+	AmplInterface inter(SRCDIR_TESTS "/ex_ampl/ex7.nl" );
 	System sys(inter);
 
 	CPPUNIT_ASSERT(sys.ctrs.size()==12);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_arg()==13);
 	CPPUNIT_ASSERT(sys.f_ctrs.nb_var()==13);
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((-1.42857142857143*(x4*x6))+(10000*x8))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((10*(x7*x9))-(0.00968946189201592*(x3*(x1^4-x2^4))))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[0].expr(),"((-1.42857*(x4*x6))+(10000*x8))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[1].expr(),"((10*(x7*x9))-(0.00968*(x3*(x1^4-x2^4))))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[2].expr(),"((143.3076*(x10*x4))+(-10000*x7))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((3.1415927*(x6*(0.001*x9)^3))-(6e-06*((x3*x4)*x13)))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((101000*(x12*x13))-(1.57079635*(x6*x14)))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((-10964781961.4318*exp((-3.55*log(x11))))+(0.434294481903252*log(((8.112*x3)+0.8))))"));
-	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((0.0307*x4^2)-(0.3864*((0.0062831854*(x1*x9))^2*x6)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[3].expr(),"((3.14159*(x6*(0.001*x9)^3))-(6e-06*((x3*x4)*x13)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[4].expr(),"((101000*(x12*x13))-(1.57079*(x6*x14)))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[5].expr(),"((-1096*exp((-3.55*log(x11))))+(56*log(((8.112*x3)+0.8))))"));
+	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[6].expr(),"((0.0307*x4^2)-(0.3864*((0.00628*(x1*x9))^2*x6)))"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[7].expr(),"((log(x2)-log(x1))+x13)"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[8].expr(),"((x2^2-x1^2)+x14)"));
 	CPPUNIT_ASSERT(sameExpr(sys.f_ctrs[9].expr(),"(((-0.5*x10)+x11)-560)"));
