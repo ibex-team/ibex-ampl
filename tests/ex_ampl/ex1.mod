@@ -13,5 +13,6 @@ minimize goal: y-exp(x[1]);
 s.t. con1{i in 0..2} :  sum {j in 0..2} A[i,j] * x[j] = a[i];
 s.t. con2: y >= x[0];
 
+option auxfiles rc;
 write gex1;
 

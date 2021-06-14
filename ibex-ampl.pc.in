@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: ibex-ampl
+Description: @IBEX_AMPL_DESCRIPTION@
+Url: @IBEX_AMPL_URL@
+Version: @IBEX_AMPL_VERSION@
+Cflags: -I${includedir} @IBEX_PKGCONFIG_INCDIRS@
+Libs: -L${libdir} -libex-ampl @IBEX_PKGCONFIG_LIBS@ -ldl -lm
+Requires: ibex >= @IBEX_MIN_VERSION_REQ@

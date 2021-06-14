@@ -10,9 +10,6 @@
 
 #include "ibex.h"
 
-#ifndef _IBEX_WITH_AMPL_
-#error "You need the plugin AMPL to run this example."
-#endif
 
 using namespace std;
 using namespace ibex;

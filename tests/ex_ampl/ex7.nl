@@ -1,4 +1,4 @@
-g9 2 1 0 12 20170902 0 4 0 240	# problem bearing
+g9 2 1 0 12 20190510 0 4 0 240	# problem ex7
  13 12 1 0 9	# vars, constraints, objectives, ranges, eqns
  9 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear
@@ -6,7 +6,7 @@ g9 2 1 0 12 20170902 0 4 0 240	# problem bearing
  0 0 0 1	# linear network variables; functions; arith, flags
  0 0 0 0 0	# discrete variables: binary, integer, nonlinear (b,c,o)
  38 2	# nonzeros in Jacobian, gradients
- 0 0	# max name lengths: constraints, variables
+ 5 3	# max name lengths: constraints, variables
  0 0 0 0 0	# common exprs: b,c,o,c1,o1
 b
 0 1 16
@@ -38,7 +38,7 @@ r
 C0
 o2
 o2
-n-1.42857142857143
+n-1.42857
 v3
 v4
 C1
@@ -50,7 +50,7 @@ v5
 v6
 o2
 o2
-n0.00968946189201592
+n0.00968
 v2
 o1
 o5
@@ -62,14 +62,14 @@ n4
 C2
 o2
 o2
-n143.3076
+n143.3
 v7
 v3
 C3
 o1
 o2
 o2
-n3.1415927
+n3.14159
 v4
 o5
 o2
@@ -87,18 +87,18 @@ C4
 o1
 o2
 o2
-n101000
+n1010
 v9
 v10
 o2
 o2
-n1.57079635
+n1.57079
 v4
 v11
 C5
 o0
 o2
-n0.43429448190325176
+n56
 o43
 o0
 n0.8
@@ -106,7 +106,7 @@ o2
 n8.112
 v2
 o2
-n-10964781961.4318
+n-1096
 o44
 o2
 n-3.55
@@ -125,7 +125,7 @@ n0.3864
 o5
 o2
 o2
-n0.0062831854
+n0.00628
 v0
 v6
 n2
@@ -213,8 +213,8 @@ J10 2
 0 1
 1 -1
 J11 2
-9 101000
-11 -15707.9635
+9 1010
+11 -15707.9
 G0 2
 5 1
 12 1

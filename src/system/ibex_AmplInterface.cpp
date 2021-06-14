@@ -1,22 +1,36 @@
 //============================================================================
 //                                  I B E X
-// File        : ibex_AmplInterface.cpp Adapted from CouenneAmplInterface
+// File        : ibex_AmplInterface.cpp
+//              Adapted from CouenneAmplInterface
 //				by Pietro Belotti, Leo Liberti and Sonia Caffieri
 // Author      : Jordan Ninin
 // License     : See the LICENSE file
 // Created     : Nov 5, 2013
-// Last Update : Nov 5, 2013
+// Last Update : June 1, 2020
 //============================================================================
 
 #include "ibex_AmplInterface.h"
-#include "ibex_Exception.h"
+#include "ibex.h"
+//#include "ibex/ibex_Exception.h"
+//#include "ibex/ibex_ExtendedSystem.h"
+//#include "ibex/ibex_DefaultOptimizerConfig.h"
 
-#include "amplsolvers/asl.h"
-#include "amplsolvers/nlp.h"
-#include "amplsolvers/getstub.h"
-#include "amplsolvers/opcode.hd"
+
+#include "asl.h"
+#include "nlp.h"
+#include "getstub.h"
+#include "opcode.hd"
+#include "r_opn.hd" /* for N_OPS */
+//#include <string.h>
+//#include <math.h>
+
 #include <stdint.h>
+#include <sstream>
 
+
+#ifndef Intcast
+#define Intcast (size_t)
+#endif
 
 #define OBJ_DE    ((const ASL_fg *) asl) -> I.obj_de_
 #define VAR_E     ((const ASL_fg *) asl) -> I.var_e_
@@ -25,100 +39,44 @@
 #define CEXPS1 ((const ASL_fg *) asl) -> I.cexps1_
 #define CEXPS ((const ASL_fg *) asl) -> I.cexps_
 
-#include "amplsolvers/r_opn.hd" /* for N_OPS */
 
-static fint timing = 0;
+
+// The options of IbexOpt available in AMPL
+static double ibex_rel_eps_f=-12345, ibex_abs_eps_f=-12345, ibex_initial_loup=-12345, ibex_timeout=-12345, ibex_eps_h=-12345;
+static int ibex_trace2=-12345, ibex_random_seed=-12345, ibex_objno=-12345, ibex_simpl_level=-12345;
+static int	ibex_rigor=-12345, ibex_kkt=-12345, ibex_inHC4=-12345;
 
 static
-keyword keywds[] = { // must be alphabetical
-		KW(const_cast<char*>("timing"), L_val, &timing, const_cast<char*>("display timings for the run")),
+keyword keywds[] = { // must be alphabetical order
+		KW(const_cast<char*>("abs_eps_f"), D_val, &ibex_abs_eps_f, const_cast<char*>("Absolute precision on the objective function. Default: 1.e-7. ")),
+		KW(const_cast<char*>("eps_h"), D_val, &ibex_eps_h, const_cast<char*>("Relaxation value of the equality constraints. Default: 1.e-8. ")),
+		KW(const_cast<char*>("inHC4"), I_val, &ibex_inHC4, const_cast<char*>("If true, feasibility is also tried with LoupFinderInHC4. Default: 1. ")),
+		KW(const_cast<char*>("init_obj_value"), D_val, &ibex_initial_loup, const_cast<char*>("Initialization of the upper bound with a known value. Default: +infinity. ")),
+		KW(const_cast<char*>("kkt"), I_val, &ibex_kkt, const_cast<char*>("Activate KKT contractor. Default: 0. ")),
+		KW(const_cast<char*>("obj_numb"),  I_val, &ibex_objno, const_cast<char*>("Choose which objective function of the AMPL model: 0 = none, 1 = first. Default: 1.")),
+		KW(const_cast<char*>("random_seed"), I_val, &ibex_random_seed, const_cast<char*>("Random seed (useful for reproducibility). Default: 1. ")),
+		KW(const_cast<char*>("rel_eps_f"), D_val, &ibex_rel_eps_f, const_cast<char*>("Relative precision on the objective. Default value is 1e-3. ")),
+		KW(const_cast<char*>("rigor"), I_val, &ibex_rigor, const_cast<char*>("Activate rigor mode (certify feasibility of equalities). If true, feasibility of equalities is certified. Default: 0. ")),
+		KW(const_cast<char*>("simpl_level"), I_val, &ibex_simpl_level, const_cast<char*>("Expression simplification level. Possible values are:\n \t\t* 0:\t no simplification at all (fast).\n \t\t* 1:\t basic simplifications (fairly fast). E.g. x+1+1 --> x+2\n \t\t* 2:\t more advanced simplifications without developing (can be slow). E.g. x*x + x^2 --> 2x^2\n \t\t* 3:\t simplifications with full polynomial developing (can blow up!). E.g. x*(x-1) + x --> x^2\n Default value is : 1.")),
+		KW(const_cast<char*>("timeout"), D_val, &ibex_timeout, const_cast<char*>("Timeout (time in seconds). Default: -1 (none). ")),
+		KW(const_cast<char*>("trace"), I_val, &ibex_trace2, const_cast<char*>("Activate trace. Updates of lower and upper bound are printed while minimizing. Default: 0 (none). ")),
+		KW(const_cast<char*>("version"), Ver_val, 0, const_cast<char*>("report version")),
+		KW(const_cast<char*>("wantsol"), WS_val, 0, WS_desc_ASL+5)
 };
 
+
+static std::string xxxvers = (std::string)("IbexOpt/AMPL Version ")+ (_IBEX_RELEASE_) + (std::string)("\n");
+
 static
-Option_Info Oinfo = { const_cast<char*>("testampl"), const_cast<char*>("ANALYSIS TEST"),
-		const_cast<char*>("concert_options"), keywds, nkeywds, 0, const_cast<char*>("ANALYSIS TEST") };
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-/* $Id: invmap.cpp 577 2011-05-21 20:38:48Z pbelotti $
- *
- * Name:    invmap.cpp
- * Author:  Pietro Belotti
- * Purpose: create a bijection between ASL's efunc and integer to
- *          inversely map e->op fields into constant operators
- *
- * (C) Carnegie-Mellon University, 2006-11.
- * This file is licensed under the Eclipse Public License (EPL)
- */
-
-/* couples an ASL function pointer with the relative operator constant */
-
-typedef struct {
-	efunc *fp;
-	int    op;
-} AslCouPair;
-
-
-/* compare two AslCoupair's, used in qsort and bsearch below */
-
-/* AW: 2007-06-11: changed b/c of problems with MSVC++ */
-/* inline int pair_compare (const void *p1, const void *p2) { */
-static int pair_compare (const void *p1, const void *p2) {
-
-	/* FIX! weak cast for 64 bit machines */
-
-	register size_t f1 = Intcast (((AslCouPair *) p1) -> fp);
-	register size_t f2 = Intcast (((AslCouPair *) p2) -> fp);
-
-	if      (f1 < f2) return -1;
-	else if (f1 > f2) return  1;
-	else return 0;
-}
-
-
-/* array of pairs (efunc2*, int) that relates all operators */
-
-AslCouPair opmap [N_OPS];
-
-
-/* binary search to get operator number from its efunc2* (the type of e->op) */
-
-size_t getOperator (efunc *f) {
-
-	static char first_call = 1;
-	AslCouPair key, *res;
-
-	/* FIX cast for 64 bit machines */
-
-	if ((Intcast f <  N_OPS) &&	(Intcast f > -N_OPS))
-		return Intcast f;
-
-	key.fp = f;
-
-	if (first_call) { /* opmap is still empty, fill it using values from r_ops [] */
-
-		register int i=0;
-		register AslCouPair *ops = opmap;
-
-		/* fill opmap vector with inverse correspondence pairs efunc -> int */
-		while (i<N_OPS) {
-			ops -> fp = r_ops [ops -> op = i++];
-			ops++;
-		}
-
-		/* sort opmap for later use with bsearch */
-		qsort (opmap, N_OPS, sizeof (AslCouPair), pair_compare);
-		first_call = 0;
-	}
-
-	/* find int operator through binary search */
-	res = (AslCouPair *) bsearch (&key, opmap, N_OPS, sizeof (AslCouPair), pair_compare);
-
-	if (!res)
-		return -1;
-
-	return res -> op;
-}
+Option_Info Oinfo = {
+		const_cast<char*>("ibexopt"),          /* invocation name of solver */
+		const_cast<char*>("IbexOpt "),         /* solver name in startup "banner" */
+		const_cast<char*>("ibexopt_options"),  /* name of solver_options environment var */
+		keywds,                                /* key words */
+		nkeywds,                               /* number of key words */
+		0,                                     /* whether funcadd will be called */
+		const_cast<char*>(xxxvers.c_str())     /*  for -v and Ver_key_ASL() */
+	};
 
 
 
@@ -129,11 +87,39 @@ namespace ibex {
 //const double AmplInterface::default_max_bound= 1.e20;
 
 
-AmplInterface::AmplInterface(std::string nlfile) : asl(NULL), _nlfile(nlfile), _x(NULL){
+
+AmplInterface::AmplInterface(std::string nlfile) :
+		asl(NULL),
+		_nlfile(nlfile),
+		_x(NULL),
+		abs_eps_f(OptimizerConfig::default_abs_eps_f),
+		eps_h(ExtendedSystem::default_eps_h),
+		init_obj_value(POS_INFINITY),
+		inHC4(-1),
+		kkt(-1),
+		obj_numb(1),
+		random_seed(DefaultOptimizerConfig::default_random_seed),
+		rel_eps_f(OptimizerConfig::default_rel_eps_f),
+		rigor(-1),
+		timeout(OptimizerConfig::default_timeout),
+		//trace(OptimizerConfig::default_trace)
+		trace (1) {
+
+	size_t i=0;
+	while (i<N_OPS) {
+		opmap[ Intcast (r_ops[i]) ] = i;
+		i++;
+	}
 
 	if (!readASLfg()) {
 		ibex_error("Fail to read the ampl file.\n");
 	}
+
+
+	if (!readoption()) {
+		ibex_error("Fail to read the option.\n");
+	}
+
 
 	if (!readnl()) {
 		ibex_error("Fail to read the nl file.\n");
@@ -142,30 +128,102 @@ AmplInterface::AmplInterface(std::string nlfile) : asl(NULL), _nlfile(nlfile), _
 }
 
 AmplInterface::~AmplInterface() {
-	if (_x) delete _x;
+	for (int i =0; i< n_var;i++) {
+			if (_x[i]) delete _x[i];
+	}
 
 	var_data.clear();
-
+	opmap.clear();
 	if (asl) {
 		ASL_free(&asl);
 	}
 }
 
-bool AmplInterface::writeSolution(double * sol, bool found) {
-	const char* message;
+bool AmplInterface::writeSolution(Optimizer& o) {
+	std::stringstream message;
+	message << "IbexOpt "<< _IBEX_RELEASE_ << " finish : ";
+	Optimizer::Status status =o.get_status();
+	switch(status) {
+		case Optimizer::SUCCESS: {
+			message << " OPTIMIZATION SUCCESS! \n "
+					<< "The global minimum has been found, with respect to \n"
+					<< "the precision required. In particular, at least \n"
+					<< "one feasible point has been found, less than \"init_obj_value\", \n"
+					<< "and in the time limit.\n" ;
+			solve_result_num=0;
 
-	//TODO setup a nicer message
-	if (found) {
-		message = "IBEX found a solution.\n";
-	} else {
-		message = "IBEX could not found a solution.\n";
-	}
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		case Optimizer::INFEASIBLE:{
+			message << " INFEASIBLE PROBLEM. \n "
+					<<"No feasible point exist less than \"init_obj_value\". \n"
+					<<"In particular, the function returns INFEASIBLE \n"
+					<<"if the initial bound \"init_obj_value\" is LESS than \n"
+					<<"the true minimum (this case is only possible \n"
+					<<"if \"rel_eps_f\" and \"abs_eps_f\" are 0). \n"
+					<<"In the latter case, there may exist feasible points." ;
+			solve_result_num=200;
 
-	write_sol(const_cast<char*>(message), sol, NULL, NULL);
+			std::string tmp = message.str();
+			write_sol(tmp.c_str(), NULL, NULL, NULL);
+			break;
+		}
+		case Optimizer::NO_FEASIBLE_FOUND:{
+			message << " NO FEASIBLE POINT FOUND. \n "
+					<<"No feasible point could be found less than \"init_obj_value\".\n"
+					<<" Contrary to INFEASIBLE, infeasibility is not proven here. \n"
+					<<"Warning: this return value is sensitive to the \"abs_eps_f\" \n"
+					<<" and \"rel_eps_f\" parameters. The upper bounding makes \n"
+					<<" the optimizer only looking for points less than\n"
+					<<" min{ (1-rel_eps_f)*init_obj_value, init_obj_value - abs_eps_f }.";
+			solve_result_num=201;
 
+			std::string tmp = message.str();
+			write_sol(tmp.c_str(), NULL, NULL, NULL);
+			break;
+		}
+		case Optimizer::UNBOUNDED_OBJ:{
+			message << " UNBOUNDED OBJECTIVE FONCTION. \n "
+					<<"The objective function seems unbounded (tends to -oo).";
+			solve_result_num=300;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		case Optimizer::TIME_OUT:{
+			message << " time limit " << o.timeout << "s. reached";
+			solve_result_num=400;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		case Optimizer::UNREACHED_PREC: {
+			message << " UNREACHED PRECISION. \n "
+					<<"The search is over but the resulting interval [uplo,loup]\n"
+					<<"does not satisfy the precision requirements. \n"
+					<<"There are several possible reasons: the objective \n"
+					<<"function may be too pessimistic or the constraints function\n"
+					<<"may be too pessimistic with respect to the precision \n"
+					<<"requirement (which can be too stringent). This results in \n"
+					<<"tiny boxes that can neither be contracted nor used as \n"
+					<<"new loup candidates. Finally, the \"eps_x\" parameter may be too large." ;
+			solve_result_num=402;
+
+			std::string tmp = message.str();
+			Vector sol = o.get_loup_point().mid();
+			write_sol(tmp.c_str(), sol.raw(), NULL, NULL);
+			break;
+		}
+		}
 	return true;
 }
-
 
 
 
@@ -186,6 +244,8 @@ bool AmplInterface::readASLfg() {
 	asl = (ASL*) ASL_alloc (ASL_read_fg);
 
 	char* stub = getstub (&argv, &Oinfo);
+	getopts (argv, &Oinfo);
+	//getstops =  getstub + getopts
 
 	// Although very intuitive, we shall explain why the second argument
 	// is passed with a minus sign: it is to tell the ASL to retrieve
@@ -208,6 +268,61 @@ bool AmplInterface::readASLfg() {
 
 
 
+// Reads the solver option from the .nl file through the ASL methods
+bool AmplInterface::readoption() {
+
+	if (ibex_abs_eps_f>0) {
+		set_abs_eps_f(ibex_abs_eps_f);
+	}
+	if (ibex_rel_eps_f>0) {
+		set_rel_eps_f ( ibex_rel_eps_f);
+	}
+
+	if (ibex_eps_h>0) {
+		set_eps_h (ibex_eps_h);
+	}
+
+	if (ibex_timeout>0) {
+		set_timeout ( ibex_timeout);
+	}
+
+	if (ibex_random_seed!=-12345) {
+		set_random_seed ( ibex_random_seed);
+	}
+
+	if (ibex_simpl_level>=0 && ibex_simpl_level<=3) {
+		set_simplification_level ( ibex_simpl_level);
+	}
+
+	if (ibex_initial_loup !=-12345) {
+		set_init_obj_value ( ibex_initial_loup);
+	} else {
+		set_init_obj_value ( POS_INFINITY );
+	}
+
+	if (ibex_rigor>=0) {
+		set_rigor(ibex_rigor==1);
+	}
+
+	if (ibex_inHC4>=0) {
+		set_inHC4(ibex_inHC4==1);
+	}
+
+	if (ibex_kkt>=0) {
+		set_kkt(ibex_kkt==1);
+	}
+
+	if (ibex_objno>=1) {
+		set_obj_numb(ibex_objno);
+	}
+
+	if (ibex_trace2!=-12345) {
+		set_trace(ibex_trace2);
+	}
+
+	return true;
+}
+
 
 // Reads a NLP from an AMPL .nl file through the ASL methods
 bool AmplInterface::readnl() {
@@ -215,7 +330,13 @@ bool AmplInterface::readnl() {
 
 	// the variable /////////////////////////////////////////////////////////////
 	// TODO only continuous variables for the moment
-	_x =new Variable(n_var,"x");
+	// TODO get the x0 : see ((expr_v *) e) -> v , havex0 and X0
+
+	_x= new const ExprSymbol*[n_var];
+	for (int i =0; i< n_var; i++) {
+		_x[i] = &(ExprSymbol::new_(var_name(i) , Dim::scalar()));
+	}
+	//_x =new Variable(n_var,"x");
 	IntervalVector bound(n_var);
 
 		// Each has a linear and a nonlinear part
@@ -242,15 +363,21 @@ bool AmplInterface::readnl() {
 					bound[i] = Interval( LUv[i], Uvx_copy[i]);
 				}
 		} // else it is [-oo,+oo]
-		add_var(*_x, bound);
+		for (int i =0; i< n_var; i++) {
+			add_var(*(_x[i]),bound[i]);
+		}
+		//add_var(*_x, bound);
 
 	// objective functions /////////////////////////////////////////////////////////////
-		if (n_obj>1) {ibex_error("Error AmplInterface: too much objective function in the ampl model."); return false;}
+		//if (n_obj>1) {ibex_error("Error AmplInterface: too much objective function in the ampl model."); return false;}
 
-		for (int i = 0; i < n_obj; i++) {
+		//for (int i = 0; i < n_obj; i++) {
+		// Select the objective function
+		if (n_obj>0 && get_obj_numb()>0) {
+			int i = get_obj_numb() -1 ;
 			///////////////////////////////////////////////////
 			//  the nonlinear part
-			const ExprNode *body = &(nl2expr (OBJ_DE [i] . e));
+			const ExprNode *body = &(nl2expr ((OBJ_DE [i]).e));
 
 			////////////////////////////////////////////////
 			// The linear part
@@ -264,11 +391,11 @@ bool AmplInterface::readnl() {
 						coeff = objgrad -> coef;
 						index = objgrad -> varno;
 						if (coeff==1) {
-							body = &((*_x)[index]);
+							body = ((_x[index]));
 						} else if (coeff==-1) {
-							body = &( - (*_x)[index]);
+							body = &( - (*(_x[index])));
 						} else {
-							body = &(coeff * (*_x)[index]);
+							body = &(coeff * (*(_x[index])));
 						}
 					}
 				} else {
@@ -276,11 +403,11 @@ bool AmplInterface::readnl() {
 						coeff = objgrad -> coef;
 						index = objgrad -> varno;
 						if (coeff==1) {
-							body = &(*body + (*_x)[index]);
+							body = &(*body + (*(_x[index])));
 						} else if (coeff==-1) {
-							body = &(*body - (*_x)[index]);
+							body = &(*body - (*(_x[index])));
 						} else {
-							body = &(*body +coeff * (*_x)[index]);
+							body = &(*body +coeff * (*(_x[index])));
 						}
 					}
 				}
@@ -290,9 +417,9 @@ bool AmplInterface::readnl() {
 			// Max or Min
 			// 3rd/ASL/solvers/asl.h, line 336: 0 is minimization, 1 is maximization
 			if (OBJ_sense [i] == 0) {
-				add_goal(*body);
+				add_goal(*body, obj_name(0));
 			} else {
-				add_goal(-(*body));
+				add_goal(-(*body), obj_name(0));
 			}
 		}
 
@@ -314,19 +441,19 @@ bool AmplInterface::readnl() {
 					if ((dynamic_cast<const ExprConstant*>(body_con[A_rownos[i]]))&&(((ExprConstant*)(body_con[A_rownos[i]]))->is_zero())) {
 						delete body_con[A_rownos[i]];
 						if (A_vals[i]==1) {
-							body_con[A_rownos[i]] = &((*_x)[j]);
+							body_con[A_rownos[i]] = (((_x[j])));
 						} else if (A_vals[i]==-1) {
-							body_con[A_rownos[i]] = &(- (*_x)[j]);
+							body_con[A_rownos[i]] = &(- (*(_x[j])));
 						} else {
-							body_con[A_rownos[i]] = &((A_vals[i]) * (*_x)[j]);
+							body_con[A_rownos[i]] = &((A_vals[i]) * (*(_x[j])));
 						}
 					} else {
 						if (A_vals[i]==1) {
-							body_con[A_rownos[i]] = &(*(body_con[A_rownos[i]]) + (*_x)[j]);
+							body_con[A_rownos[i]] = &(*(body_con[A_rownos[i]]) + (*(_x[j])));
 						} else if (A_vals[i]==-1) {
-							body_con[A_rownos[i]] = &(*(body_con[A_rownos[i]]) - (*_x)[j]);
+							body_con[A_rownos[i]] = &(*(body_con[A_rownos[i]]) - (*(_x[j])));
 						} else {
-							body_con[A_rownos[i]] = &(*(body_con[A_rownos[i]]) + (A_vals[i]) * (*_x)[j]);
+							body_con[A_rownos[i]] = &(*(body_con[A_rownos[i]]) + (A_vals[i]) * (*(_x[j])));
 						}
 					}
 
@@ -344,11 +471,11 @@ bool AmplInterface::readnl() {
 						if (fabs (coeff) != 0.0) {
 							index = congrad -> varno;
 							if (coeff==1) {
-								body_con[i] = &( (*_x)[index]);
+								body_con[i] = ( ((_x[index])));
 							} else if (coeff==-1) {
-								body_con[i] = &(-(*_x)[index]);
+								body_con[i] = &(-(*(_x[index])));
 							} else {
-								body_con[i] = &((coeff) * (*_x)[index]);
+								body_con[i] = &((coeff) * (*(_x[index])));
 							}
 						}
 
@@ -357,11 +484,11 @@ bool AmplInterface::readnl() {
 						if (fabs (coeff) != 0.0) {
 							index = congrad -> varno;
 							if (coeff==1) {
-								body_con[i] = &(*(body_con[i]) + (*_x)[index]);
+								body_con[i] = &(*(body_con[i]) + (*(_x[index])));
 							} else if (coeff==-1) {
-								body_con[i] = &(*(body_con[i]) - (*_x)[index]);
+								body_con[i] = &(*(body_con[i]) - (*(_x[index])));
 							} else {
-								body_con[i] = &(*(body_con[i]) + (coeff) * (*_x)[index]);
+								body_con[i] = &(*(body_con[i]) + (coeff) * (*(_x[index])));
 							}
 						}
 					}
@@ -401,28 +528,32 @@ bool AmplInterface::readnl() {
 						add_ctr_eq((*(body_con[i])-lb));
 					}
 				} else  {
-					 add_ctr(ExprCtr(*(body_con[i])-ub, LEQ));
-					 add_ctr(ExprCtr(*(body_con[i])-lb, GEQ));
+					 std::string name1 = "_1";
+					 name1 = con_name(i)+name1;
+					 std::string name2 = "_2";
+					 name2 = con_name(i)+name2;
+					 add_ctr(ExprCtr(*(body_con[i])-ub, LEQ), name1.c_str());
+					 add_ctr(ExprCtr(*(body_con[i])-lb, GEQ), name2.c_str());
 				}
 				break;
 			}
 			case  2:  {
 				if (lb==0) {
-					add_ctr(ExprCtr(*(body_con[i]),GEQ));
+					add_ctr(ExprCtr(*(body_con[i]),GEQ),con_name(i));
 				} else if (lb<0) {
-					add_ctr(ExprCtr(*(body_con[i])+(-lb),GEQ));
+					add_ctr(ExprCtr(*(body_con[i])+(-lb),GEQ),con_name(i));
 				} else {
-					add_ctr(ExprCtr(*(body_con[i])-lb,GEQ));
+					add_ctr(ExprCtr(*(body_con[i])-lb,GEQ),con_name(i));
 				}
 				break;
 			}
 			case  3: {
 				if (ub==0) {
-					add_ctr(ExprCtr(*(body_con[i]),LEQ));
+					add_ctr(ExprCtr(*(body_con[i]),LEQ),con_name(i));
 				} else if (ub<0) {
-					add_ctr(ExprCtr(*(body_con[i])+(-ub),LEQ));
+					add_ctr(ExprCtr(*(body_con[i])+(-ub),LEQ),con_name(i));
 				} else {
-					add_ctr(ExprCtr(*(body_con[i])-ub,LEQ));
+					add_ctr(ExprCtr(*(body_con[i])-ub,LEQ),con_name(i));
 				}
 				break;
 			}
@@ -445,14 +576,14 @@ bool AmplInterface::readnl() {
 // http://www.gerad.ca/~orban/drampl/dag.html
 const ExprNode& AmplInterface::nl2expr(expr *e) {
 
-	switch (getOperator (e -> op)) {
+	switch (opmap[Intcast (e -> op)]) {
 
 	case OPNUM:    return  (ExprConstant::new_scalar(((expr_n *)e)->v));
 	case OPPLUS:   {
-		if (getOperator(e->R.e->op)==OPUMINUS) {
+		if (opmap[Intcast (e->R.e->op)]==OPUMINUS) {
 			return  (( nl2expr(e -> L.e)) - nl2expr((e->R.e)->L.e) );
 		} else {
-			if (getOperator(e->L.e->op)==OPUMINUS) {
+			if (opmap[Intcast (e->L.e->op)]==OPUMINUS) {
 				return  (nl2expr(e->R.e) - nl2expr((e->L.e)->L.e) );
 			} else {
 				return  (nl2expr(e->R.e) + nl2expr(e->L.e) );
@@ -460,7 +591,7 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 		}
 	}
 	case OPMINUS:  {
-		if (getOperator(e->R.e->op)==OPUMINUS)  {
+		if (opmap[Intcast (e->R.e->op)]==OPUMINUS)  {
 			return (( nl2expr(e->L.e)) + nl2expr((e->R.e)->L.e) );
 		} else {
 			return  (( nl2expr(e->L.e)) - nl2expr(e->R.e));
@@ -502,7 +633,7 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 		const ExprNode* ee = &(nl2expr(*ep));
 		ep++;
 		while (ep < e->R.ep) {
-			if (getOperator((*ep)->op)==OPUMINUS) {
+			if (opmap[Intcast ((*ep)->op)]==OPUMINUS) {
 				ee = &(*ee - nl2expr((*ep)->L.e) );
 			} else {
 				ee = &(*ee + nl2expr(*ep) );
@@ -513,7 +644,7 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 	}
 	case ABS:      return abs( nl2expr(e -> L.e));
 	case OPUMINUS: {
-		if (getOperator(e->L.e->op)==OPUMINUS)  {
+		if (opmap[Intcast (e->L.e->op)]==OPUMINUS)  {
 			return  (nl2expr((e -> L.e)->L.e));
 		} else {
 			return  (operator-(nl2expr(e -> L.e)));
@@ -532,28 +663,28 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 	case OP_acos:  return acos(nl2expr(e -> L.e));
 	case OP_asin:  return asin(nl2expr(e -> L.e));
 	case OP_atan:  return atan(nl2expr(e -> L.e));
-	//case OP_asinh: notimpl ("asinh");
-	//case OP_acosh: notimpl ("acosh");
-	//case OP_atanh: notimpl ("atanh");
+	case OP_asinh: return asinh(nl2expr(e -> L.e));
+	case OP_acosh: return acosh(nl2expr(e -> L.e));
+	case OP_atanh: return atanh(nl2expr(e -> L.e));
 	case OP_atan2: return atan2(nl2expr(e -> L.e), nl2expr(e -> R.e));
 	//case OPintDIV: notimpl ("intdiv");
 	//case OPprecision: notimpl ("precision");
 	//case OPround:  notimpl ("round");
 	//case OPtrunc:  notimpl ("trunc");
-	//case FLOOR:   notimpl ("floor");
-	//case CEIL:    notimpl ("ceil");
+	case FLOOR:   return floor(nl2expr(e -> L.e));
+	case CEIL:    return ceil(nl2expr(e -> L.e));
 	//case OPFUNCALL: notimpl ("function call");
 	//case OPPLTERM:  notimpl ("plterm");
 	//case OPIFSYM:   notimpl ("ifsym");
 	//case OPHOL:     notimpl ("hol");
 	//case OPREM:   notimpl ("remainder");
 	//case OPLESS:  notimpl ("less");
-	//case OPIFnl:  // TODO return (chi(nl2expr(????))) BoolInterval??
+	//case OPIFnl:  // TODO return (chi(nl2expr(????))) perhaps need BoolInterval??
 	                // see ASL/solvers/rops.c, see f_OPIFnl and  expr_if
 	case OPVARVAL:  {
 		int j = ((expr_v *) e) -> a;
 		if (j<n_var) {
-			return (*_x)[j];
+			return (*(_x[j]));
 		}
 		else {
 			// http://www.gerad.ca/~orban/drampl/def-vars.html
@@ -571,7 +702,6 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 					body = var_data[k];
 				}
 				else {
-
 					// Constract the common expression
 					j = k - n_var;
 					if( j < ncom0 ) 	{
@@ -587,21 +717,22 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 									coeff = (L[i]).fac;
 									index = ((uintptr_t) (L[i].v.rp) - (uintptr_t) VAR_E) / sizeof (expr_v);
 									if (coeff==1) {
-										body = &((*_x)[index]);
+										body = &((*(_x[index])));
 									} else if (coeff==-1) {
-										body = &( - (*_x)[index]);
+										body = &( - (*(_x[index])));
 									} else if (coeff != 0) {
-										body = &(coeff * (*_x)[index]);
+										body = &(coeff * (*(_x[index])));
 									}
-								} else {
+								}
+								else {
 									coeff = (L[i]).fac;
 									index = ((uintptr_t) (L[i].v.rp) - (uintptr_t) VAR_E) / sizeof (expr_v);
 									if (coeff==1) {
-										body = &(*body + (*_x)[index]);
+										body = &(*body + (*(_x[index])));
 									} else if (coeff==-1) {
-										body = &(*body - (*_x)[index]);
+										body = &(*body - (*(_x[index])));
 									} else if (coeff != 0) {
-										body = &(*body +coeff * (*_x)[index]);
+										body = &(*body +coeff * (*(_x[index])));
 									}
 								}
 							}
@@ -620,32 +751,35 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 									coeff = (L[i]).fac;
 									index = ((uintptr_t) (L[i].v.rp) - (uintptr_t) VAR_E) / sizeof (expr_v);
 									if (coeff==1) {
-										body = &( (*_x)[index]);
+										body = &( (*(_x[index])));
 									} else if (coeff==-1) {
-										body = &( - (*_x)[index]);
+										body = &( - (*(_x[index])));
 									} else if (coeff != 0) {
-										body = &(coeff * (*_x)[index]);
+										body = &(coeff * (*(_x[index])));
 									}
-								} else {
+								}
+								else {
 									coeff = (L[i]).fac;
 									index = ((uintptr_t) (L[i].v.rp) - (uintptr_t) VAR_E) / sizeof (expr_v);
 									if (coeff==1) {
-										body = &(*body + (*_x)[index]);
+										body = &(*body + (*(_x[index])));
 									} else if (coeff==-1) {
-										body = &(*body - (*_x)[index]);
+										body = &(*body - (*(_x[index])));
 									} else if (coeff != 0) {
-										body = &(*body +coeff * (*_x)[index]);
+										body = &(*body +coeff * (*(_x[index])));
 									}
 
 								}
 							}
 						}
 					}
+					// Store the temporary variable, in case of reuse it late, to construct a DAG (and not just a tree.
 					var_data[k] = body;;
 				}
 				return *body;
 
-			} else {
+			}
+			else {
 				ibex_error("Error AmplInterface: unknown defined variable \n");
 				throw -1;
 			}
@@ -653,7 +787,8 @@ const ExprNode& AmplInterface::nl2expr(expr *e) {
 	}
 
 	default: {
-		ibex_error( "Error AmplInterface: unknown operator or not implemented \n");
+		std::cout << opmap[Intcast (e -> op)] << std::endl;
+		ibex_error( "Error AmplInterface: unknown operator or not implemented \n " );
 		throw -2;
 	}
 	}

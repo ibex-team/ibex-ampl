@@ -13,7 +13,7 @@
 #define __TEST_AMPL_H__
 
 #ifndef SRCDIR_TESTS
-  #define SRCDIR_TESTS "."
+  #define SRCDIR_TESTS "../../tests"
 #endif
 
 #include <cppunit/TestFixture.h>
@@ -36,6 +36,11 @@ public:
 		CPPUNIT_TEST(variable1);
 		CPPUNIT_TEST(variable2);
 		CPPUNIT_TEST(variable3);
+		CPPUNIT_TEST(I5);
+		CPPUNIT_TEST(bearing);
+		CPPUNIT_TEST(option1);
+		CPPUNIT_TEST(option2);
+
 	CPPUNIT_TEST_SUITE_END();
 
 	void factory01();
@@ -46,6 +51,10 @@ public:
 	void variable1();
 	void variable2();
 	void variable3();
+	void I5();
+	void bearing();
+	void option1();
+	void option2();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestAmpl);

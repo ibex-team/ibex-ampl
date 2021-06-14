@@ -8,5 +8,5 @@ s.t. con3: x-y<=1;
 s.t. con4: x-y>=-1;
 s.t. con5: x=y;
 
-
+option auxfiles rc;
 write gex3;

@@ -1,0 +1,32 @@
+# Get path of current directory
+get_filename_component(_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+
+# Load main config file
+include(${_DIR}/@IBEX_MYPLUGIN_TARGETS_CONFIG_FILE@)
+
+# set IBEX_DIR to help find Ibex (if not already set)
+if (NOT DEFINED ENV{IBEX_DIR})
+  set (ENV{IBEX_DIR} "@IBEX_DIR@")
+endif ()
+
+# Set some var to respect QUIET et REQUIRED when looking for dependencies
+if (${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
+  set (_quiet_arg QUIET)
+endif ()
+if (${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
+  set (_required_arg REQUIRED)
+endif ()
+
+# Looking for Ibex
+find_package (Ibex @IBEX_MIN_VERSION_REQ@ ${_quiet_arg} ${_required_arg})
+if (NOT IBEX_FOUND)
+  set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE
+                          "${CMAKE_FIND_PACKAGE_NAME} could not be found \
+                          because dependency Ibex could not be found.")
+  set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+endif()
+unset (_quiet_arg)
+unset (_required_arg)
+
+#
+unset (_DIR)

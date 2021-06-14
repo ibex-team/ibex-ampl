@@ -10,5 +10,5 @@ s.t. con2: zz-y <= 0;
 s.t. con3: x-z >= 0;
 
 
-
+option auxfiles rc;
 write gex5;

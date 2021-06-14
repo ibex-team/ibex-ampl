@@ -8,5 +8,5 @@ s.t. con2: x[1]+x[2]<=y;
 s.t. con3: y >= x[0];
 
 
-
+option auxfiles rc;
 write gex2;

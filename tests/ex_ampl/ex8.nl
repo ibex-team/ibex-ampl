@@ -1,4 +1,4 @@
-g3 0 1 0	# problem I5
+g3 0 1 0	# problem ex8
  13 11 0 0 11	# vars, constraints, objectives, ranges, eqns
  10 0	# nonlinear constraints, objectives
  0 0	# network constraints: nonlinear, linear
@@ -6,7 +6,7 @@ g3 0 1 0	# problem I5
  0 0 0 1	# linear network variables; functions; arith, flags
  0 0 0 0 0	# discrete variables: binary, integer, nonlinear (b,c,o)
  43 0	# nonzeros in Jacobian, gradients
- 0 0	# max name lengths: constraints, variables
+ 5 3	# max name lengths: constraints, variables
  0 0 0 0 0	# common exprs: b,c,o,c1,o1
 b
 0 -100 100
@@ -23,21 +23,21 @@ b
 3
 3
 r
-4 0.25428722
-4 0.37842197
-4 0.27162577
-4 0.19807914
-4 0.44166728
-4 0.14654113
-4 0.42937161
-4 0.07056438
-4 0.34504906
-4 0.42651102
+4 0.25428
+4 0.37842
+4 0.27162
+4 0.19807
+4 0.44166
+4 0.14654
+4 0.42937
+4 0.07056
+4 0.34504
+4 0.42651
 4 0
 C0
 o0
 o2
-n-0.18324757
+n-0.18324
 o5
 o2
 o2
@@ -55,7 +55,7 @@ n7
 C1
 o0
 o2
-n-0.16275449
+n-0.16275
 o5
 o2
 o2
@@ -73,7 +73,7 @@ n7
 C2
 o0
 o2
-n-0.16955071
+n-0.16955
 o5
 o2
 o2
@@ -91,7 +91,7 @@ n7
 C3
 o0
 o2
-n-0.15585316
+n-0.15585
 o5
 o2
 o2
@@ -109,7 +109,7 @@ n7
 C4
 o0
 o2
-n-0.1995092
+n-0.1995
 o5
 o2
 o2
@@ -127,7 +127,7 @@ n7
 C5
 o0
 o2
-n-0.18922793
+n-0.18922
 o5
 o2
 o2
@@ -145,7 +145,7 @@ n7
 C6
 o0
 o2
-n-0.21180486
+n-0.2118
 o5
 o2
 o2
@@ -163,7 +163,7 @@ n7
 C7
 o0
 o2
-n-0.17081208
+n-0.17081
 o5
 o2
 o2
@@ -181,7 +181,7 @@ n7
 C8
 o0
 o2
-n-0.1961274
+n-0.19612
 o5
 o2
 o2
@@ -199,7 +199,7 @@ n7
 C9
 o0
 o2
-n-0.21466544
+n-0.21466
 o5
 o2
 o2
