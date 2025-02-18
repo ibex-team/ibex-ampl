@@ -2,7 +2,7 @@
 get_filename_component(_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 
 # Load main config file
-include(${_DIR}/@IBEX_MYPLUGIN_TARGETS_CONFIG_FILE@)
+include(${_DIR}/@IBEX_AMPL_TARGETS_CONFIG_FILE@)
 
 # set IBEX_DIR to help find Ibex (if not already set)
 if (NOT DEFINED ENV{IBEX_DIR})
