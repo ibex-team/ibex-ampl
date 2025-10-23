@@ -11,13 +11,10 @@
 #ifndef __IBEX_AMPL_INTERFACE_H__
 #define __IBEX_AMPL_INTERFACE_H__
 
-#include "ibex.h"
-//#include "ibex/ibex_SystemFactory.h"
-//#include "ibex/ibex_Expr.h"
-//#include "ibex/ibex_Interval.h"
-//#include "ibex/ibex_Setting.h"
-//#include "ibex/ibex_Optimizer.h"
-//#include "ibex/ibex_OptimizerConfig.h"
+#include "ibex_SystemFactory.h"
+#include "ibex_ExtendedSystem.h"
+#include "ibex_DefaultOptimizerConfig.h"
+#include "ibex/ibex_Optimizer.h"
 
 #include <string>
 

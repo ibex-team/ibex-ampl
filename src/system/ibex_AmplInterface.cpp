@@ -10,11 +10,6 @@
 //============================================================================
 
 #include "ibex_AmplInterface.h"
-#include "ibex.h"
-//#include "ibex/ibex_Exception.h"
-//#include "ibex/ibex_ExtendedSystem.h"
-//#include "ibex/ibex_DefaultOptimizerConfig.h"
-
 
 #include "asl.h"
 #include "nlp.h"
