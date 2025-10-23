@@ -1,5 +1,5 @@
 prefix=@CMAKE_INSTALL_PREFIX@
-includedir=${prefix}/include
+includedir=${prefix}/include/ibex-ampl
 libdir=${prefix}/lib
 
 Name: ibex-ampl
