@@ -1,32 +1,40 @@
-# Get path of current directory
-get_filename_component(_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+# CMake configuration file for IBEX_AMPL
 
-# Load main config file
-include("${_DIR}/@IBEX_AMPL_TARGETS_CONFIG_FILE@")
+include(CMakeFindDependencyMacro)
 
-# set IBEX_DIR to help find Ibex (if not already set)
-if (NOT DEFINED ENV{IBEX_DIR})
-  set (ENV{IBEX_DIR} "@IBEX_DIR@")
-endif ()
+# ---------------------------------------------------------------------------
+# Find IBEX dependency
+# ---------------------------------------------------------------------------
 
-# Set some var to respect QUIET et REQUIRED when looking for dependencies
-if (${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
-  set (_quiet_arg QUIET)
-endif ()
-if (${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
-  set (_required_arg REQUIRED)
-endif ()
-
-# Looking for Ibex
-find_package (Ibex @IBEX_MIN_VERSION_REQ@ ${_quiet_arg} ${_required_arg})
-if (NOT IBEX_FOUND)
-  set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE
-                          "${CMAKE_FIND_PACKAGE_NAME} could not be found \
-                          because dependency Ibex could not be found.")
-  set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+# Help locate IBEX using the path recorded when IBEX_AMPL was built.
+# Preserve any path explicitly provided by the user.
+if(NOT DEFINED ENV{IBEX_DIR} AND NOT DEFINED IBEX_DIR)
+    set(ENV{IBEX_DIR} "@IBEX_DIR@")
 endif()
-unset (_quiet_arg)
-unset (_required_arg)
 
-#
-unset (_DIR)
+find_dependency(IBEX @IBEX_MIN_VERSION_REQ@)
+
+# ---------------------------------------------------------------------------
+# Find ASL dependency
+# ---------------------------------------------------------------------------
+
+# First, look for ASL installed as a bundled dependency of IBEX_AMPL.
+# In that case, its configuration file is installed in:
+#   <prefix>/share/ibex_ampl/cmake/3rd/ampl-asl/
+
+find_package(ASL CONFIG QUIET
+    NAMES ampl-asl
+    PATHS "${CMAKE_CURRENT_LIST_DIR}/3rd/ampl-asl"
+    NO_DEFAULT_PATH
+)
+
+# Otherwise, look for an independently installed ASL package.
+if(NOT ASL_FOUND)
+    find_dependency(ASL CONFIG NAMES ampl-asl)
+endif()
+
+# ---------------------------------------------------------------------------
+# Load IBEX_AMPL exported targets
+# ---------------------------------------------------------------------------
+
+include("${CMAKE_CURRENT_LIST_DIR}/@IBEX_AMPL_TARGETS_CONFIG_FILE@")
